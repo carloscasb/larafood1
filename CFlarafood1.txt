@@ -1,0 +1,5169 @@
+---------ACESSORIOS ------------------
+
+https://github.com/tutorialesvirtuales/Curso-Laravel
+https://github.com/jeroennoten/Laravel-AdminLTE
+fontawesone.io
+-------------------PROBLEMAS
+# composer dump-autoload
+# php artisan migrate:refresh
+php artisan migrate:fresh
+composer dump-autoload
+
+----------------JA QUE VAMOS USAR O User PADRÃO VAMOS EM app\Provider\AppServiceProvider  
+
+use Illuminate\Support\Facades\Schema;
+
+/////
+public function boot()
+    {
+        Schema::defaultStringLength(191);
+    }
+
+----CRIA PROJETO base--------------------------
+
+C:\Users\barbosa>cd\
+
+C:\>cd wamp64\www\
+
+C:\wamp64\www>composer create-project --prefer-dist laravel/laravel base
+Installing laravel/laravel (v6.18.8)
+
+---------------CRIA ARQUIVO BAT-- > (faz um bloco de nota e salva com extensa�o .bat
+cd\
+cd wamp64\www\saber
+
+php artisan serve
+------------------------------------------------------------------------------
+-------------------------------------------------------------------INICIO
+
+
+---------------CRIA ARQUIVO BAT-- > (faz um bloco de nota e salva com extensa�o .bat
+cd\
+cd wamp64\www\saber
+
+php artisan serve
+
+----------------------------------------------------------------------------
+PROJETO CRIADO VAMOS EM ENV
+APP_NAME=Larafood1
+APP_ENV=local
+APP_KEY=base64:PVO6OiFh1Z1FU352gcDrjHMVEmpWBd1l3mwFr+TB4kE=
+APP_DEBUG=true
+APP_URL=http://larafood1.teste
+
+LOG_CHANNEL=stack
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=larafood1
+DB_USERNAME=root
+DB_PASSWORD=
+
+----------------------------------------------------------------------------
+DEPOIS EM config\app.php
+ 'timezone' => 'America/Sao_Paulo',
+----------------------------------------------------------------------------
+CRIAR NOSSO DIRETORIO DE MODELS em app e ARRASTA O User.php PARA DENTRO MUDANDO O NAMESPACE
+namespace App\Models;
+----------------------------------------------------------------------------
+VAMOS EM config\auth.php e atualizamos o namespace do models User 
+        'providers' => [
+        'users' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\User::class,
+        ],
+----------------------------------------------------------------------------GIT
+GIT
+----------------------------------------------------------------------------AdminLT3
+VAMOS USAR O PACOTE AdminLT3 ENCONTAMOS NO LINK ABAIXO
+AdminLTE Laravel: https://github.com/jeroennoten/Laravel-AdminLTE
+
+INSTALAR O PACOTE VIA TERMINAL
+# composer require jeroennoten/laravel-adminlte
+E DEPOIS CONFERE A INSTALAÇÂO DEFINITIVA
+# php artisan adminlte:install
+
+MODIFICOU ALGUNAS COISA NO NOSSO PROJETO, PRINCIPALMENTE A CRIAÇÂO DE Vendor NO NOSSO DIRETORIO Public (DE TERCEIROS)
+EM Config ELE JA COLOCA UMA PASTA AdminLTE e em Resource\vendor\adminLte ja colocou os idiomas ETC...
+----------------------------------------------------------------------------
+VAMOS EM config\adminlte.php E DEFINIMOS NOSSO TEMPALTE CONFORME VONTADE ..exemplo
+ 'title' => 'Larafood1',
+    'title_prefix' => '',
+    'title_postfix' => '',
+-----------
+ 'logo' => '<b>LAraFood1</b>LTE',
+    'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
+    'logo_img_class' => 'brand-image img-circle elevation-3',
+    'logo_img_xl' => null,
+    'logo_img_xl_class' => 'brand-image-xs',
+    'logo_img_alt' => 'LAraFood1',
+
+ -----------------------------------
+ MAIS O MAIS IMPRTANTE É A PARTE DE MENU e SUBMENU (ONDE TRABALHAMOS COM MENU DO DASHBOARD)
+ VAMOS MEXER COM O DESEVOLVIMENTO DO PROJETO
+
+    'menu' => [
+        [
+            'text' => 'search',
+            'search' => true,
+            'topnav' => true,
+        ],
+        [
+            'text' => 'blog',
+            'url'  => 'admin/blog',
+            'can'  => 'manage-blog',
+        ],
+        [
+            'text'        => 'pages',
+            'url'         => 'admin/pages',
+            'icon'        => 'far fa-fw fa-file',
+            'label'       => 4,
+            'label_color' => 'success',
+-----------------------------------
+SE DESEJAR CUSTOMIZAR AS views ----- NAO FIZ (NAO RODEI)
+
+# php artisan adminlte:install --only=main_views
+----------------------------------------------------------------------------VAMOS TRABALHAR--FAZER AS MODELS JA COM AS MIGRATION
+# php artisan make:model Models\Plan -mc --resource 
+# php artisan make:model Models\Plan -m  --------------------------------USEI ESSA (MAS A DE CIMA PRETENDO)
+CRIOU A MODEL PLAN E A MIGRATION PLAN
+VAMOS EM NIGATTION PLAN e DEFININOS AS COLUNAS DE NOSSA TABELA
+  public function up()
+    {
+        Schema::create('plans', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->sring('name')->unique();
+            $table->sring('url')->unique();
+            $table->double('price' , 10, 2);
+            $table->sring('description')->nullable();
+            $table->timestamps();
+        });
+    }
+-------------------------------------------------------
+ E NA MODELS PLAN DEFININOS NOSSO fillable (permisao de dados no BD)
+ class Plan extends Model
+{
+    protected $fillable = ['name', 'url', 'price', 'description'];
+}
+
+-------------------------------------------------------------------------------------CR|IAR BD
+NESSE MOMENTO VAMOS CRIAR UM BD NO phpadmin COM o NOME DE larafood1 RECOMEDADO utf8mb4_unicode_ci
+
+------------------------------------------------------------------------------------CRIAR TABELAS
+NO TERMINAL 
+# php artisan migrate          USEI ESSA   ----DEU -------------------------EXCESÂO AQUI COMPLICOU
+
+# php artisan make:migration create_plans_table    QUANDO FOR ESPECIFICA
+
+------------------------------------------------------------------------------------VAMOS TENTAR RESOLVER -  
+----------------------------------FIZ VARIAS TENTATIVAS, TINHA ERROS DE CODIGOS, AI FIZ A PROFILE E RODEI 
+composer dump-autoload
+php artisan migrate:fresh
+
+--------------------------------------------BINGO--- DEU CERTO E CRIOU AS TABELAS, Plans, Planos e Profiles
+-----------------------------------------------------------MAS TENHO QUE VER ESSA PARTE DA migrate
+-----VAMOS CONTINUAR----------------------------------------PULANDO PARA PRIMEIRO PULO APOS O CERCADO DE "XX"
+
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+PRIMEIRAMENTE VAMOS CRIAR UM SEEDER User
+# php artisan make:seeder UsersTableSeeder
+E CODIFICAR
+<?php
+
+use Illuminate\Database\Seeder;
+use App\Models\User; 
+class UsersTableSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        User::Create([
+            'name' => 'carlos',
+            'email' => 'carlos@gmail.com',
+            'password' => bcrypt('casb'),
+        ]);
+    }
+    
+}
+
+-----NAO ESQUECER O ---use App\Models\User; LA EM CIMA
+---------EM DATABASEEDER LIBERE O THIS
+public function run()
+    {
+        $this->call(UsersTableSeeder::class);
+        
+    }
+}
+
+-----RODAR SEEDER PARA POPULAR A TELA User
+# php artisan db:seed --class=UsersTableSeeder
+
+-------------------------------------------------------------------POPULOU A TABRELA User 
+-------------------------------------------------------------------ATE AQUI FUNCIOMOU
+ VAMOS CRIAR UM SEEDER PARA PLANS
+ # php artisan make:seeder PlansTableSeeder
+
+ ----------------
+
+php artisan make:migration create_plans_table
+php artisan make:migration create_pessoas_table
+-------------------------------------------------------------------NAO ANDA, RESOLVIR DA UM AUTOLOAD e UM FLECH
+
+composer dump-autoload
+php artisan migrate:fresh
+
+-------------------------------------------------------------------LIBERar EM EM DATABASEEDER LIBERE O THIS PLANS
+  public function run()
+    {
+        $this->call(UsersTableSeeder::class);
+        //
+         $this->call(PlansTableSeeder::class);
+
+    }
+}
+
+-----------------------------------------------------------------------------------
+
+php artisan make:model Models\Plano -mc --resource 
+php artisan make:seeder PlanosTableSeeder    CRIAR UM SEEDER
+
+php artisan db:seed --class=PlanosTableSeeder 
+php artisan make:migration create_planos_table
+
+Migrating: 2020_05_10_090711_create_planos_table
+
+   BadMethodCallException  : Method Illuminate\Database\Schema\Blueprint::sring does not exist.
+ InvalidArgumentException  : A CreatePlanosTable class already exists.
+
+  at C:\wamp64\www\larafood1\vendor\laravel\framework\src\Illuminate\Database\Migrations\MigrationCreator.php:90
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+---------------------------PRIMEIRO PULO---------------------------
+
+
+------------------CRIAR AS ROTAS-----------------------------------
+--INICIALMENTE FAREMOS UMA POR UMA-------
+--Antes recomendado criar o PlanController --(nesse caso que ainda nao criamos, quando for ressouse ja fica criado)
+com vai ficar no diretorio Admin colocamos o namespace
+
+# php artisan make:controller Admin\PlanController
+
+CRIA Admin\PlanController FALTANDO PREENCHER SEUS METODOS
+class PlanController extends Controller
+{
+    public function index()
+            {
+            return view('admin.pages.plans.index');
+        }
+}
+    
+
+
+LIBERE A ROUTER EM WEB.php
+RRoute::get('/admin/plans', 'Admin\PlanController@index')->name('plans.index');
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+----------------E VAMOS CRIAR A View index em Resource\views\admin\pages\plans
+
+----------------------PEGA O 4. Usage DO AdminLTE E COLOCA (NA DOCUMENTAÇÃO)
+@extends('adminlte::page')
+
+@section('title', 'Dashboard')
+
+@section('content_header')
+    <h1>Dashboard</h1>
+@stop
+
+@section('content')
+    <p>Welcome to this beautiful admin panel.</p>
+@stop
+------------------------------------------   A PAGINA index JA ESTA FUNCIONANDO COM A ROUTER
+----------------------------COMEÇAR A CONFIGURA OAdminLTE - Dashboard ------------------
+
+Vamos em Config\AdminLT3.php
+menu' => [
+        [
+            'text' => 'search',
+            'search' => true,
+            'topnav' => true,
+        ],
+        [
+            'text' => 'Planos',
+            'url'  => 'admin/plans',
+            
+        ],
+
+------------------------------------- VAMOS LISTAR NOSSOS PLANOS (fazer realmente os metodos do CRUD)-----------------------
+
+----NO PlansContoller FARENOS UM __CONSTRUTOR
+
+@
+ class PlanController extends Controller
+{
+
+       private $repository; 
+      
+       public function __construct(Plan $plan)
+       {
+           $this->repository= $plan;
+        }
+       public function index()
+        {
+                $plans = $this->repository->all();
+            return view('admin.pages.plans.index', [
+                'plans' => $plans,
+                ]);
+        }
+}
+
+-----------------------------E AGORA PARA LISTAR OS PLANOS NA views FAZ UM FORreach NA view ja estilizada
+@extends('adminlte::page')
+
+@section('title', 'Planos')
+
+@section('content_header')
+<h1>PLANOS</h1>
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            <div class="card-header">
+                #filtross
+
+                </div>
+        <div class="card-body">
+
+        <table class="table table-condensed">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Preço</th>
+                     <th style="width: 50px">Ação</th>
+
+                </tr>
+
+            </thead>
+            <body>
+                @foreach($plans as $plan)
+                 <tr>
+                    <td>{{ $plan->name }}</td>
+                    <td>{{ $plan->price }}</td>
+                    <td>
+                    <a href="url" class="btn btn-warning">Detalhe</a>
+                    </td>
+                    </tr>
+                @endforeach
+            </body>
+        </table>
+       
+    
+                </div>
+            </div>
+
+@stop
+---------------------------------------------------------------------Não VAI APARECER REGISTRO POIS NOSSO BD ESTA VAZIO
+-------------PODEMOS PREENCHER MANUALEMENTE SOMENTE PARA VISUALIZAR ---FAREI ISSO
+
+---------------------------------------------------------VAMOS PAGINAR
+VAI EM PlanController e troca all por paginate SEGUIDO PELO NUMERO DE REGISTRO POR PAGINA, O PADRAO È 15
+public function index()
+        {
+                $plans = $this->repository->paginate(1);
+            return view('admin.pages.plans.index', [
+                'plans' => $plans,
+                ]);
+        }
+----VAI NA View index e acrecentar NO FINAL UMA div
+
+      </tr>
+                @endforeach
+            </body>
+        </table>
+       
+    
+                </div>
+            </div>
+
+            <div class="card-footer">
+                {!! $plans->links() !!}
+            </div>
+
+@stop
+
+----------------------------------VAMOS DEIXAR DEFAULD E DO REGITRO DO MAIS ANTIGO PAR O MAIS NOVO, METODO Latext
+public function index()
+        {
+                $plans = $this->repository->latest()->paginate();
+            return view('admin.pages.plans.index', [
+                'plans' => $plans,
+                ]);
+        }
+}
+
+-------------------------------INSERIR REGISTRO EM PLAN (CADASTRAR NOVO PLANO)
+---CRIAMOS UM BOTAO DE ADD NO INICIO DA PAGINA index
+@extends('adminlte::page')
+
+@section('title', 'Planos')
+
+@section('content_header')
+<h1>PLANOS  <a href="{{route('plans.create')}}" class="btn btn-dark">ADD</a></h1>
+@stop
+
+------- CRIAR A Router CREATE QUE AINDA NAO EXISTE e tambem a router Store TIPO (post) QUE REALMENTE FAZ A GRAVAÇÂO
+
+Route::post('/admin/plans', 'Admin\PlanController@store')->name('plans.store');
+Route::get('/admin/plans/create', 'Admin\PlanController@create')->name('plans.create');
+Route::get('/admin/plans', 'Admin\PlanController@index')->name('plans.index');
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+
+
+-------------------------------------E VAMOS CRIAR NOSSA View de Create com FORMULARIO DE CADASTRO E @csrf
+@extends('adminlte::page')
+
+@section('title', 'Cadastrando Novo Planos')
+
+@section('content_header')
+<h1>Cadastrando Novo Planos  </h1>
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            <div class="card-body">
+            <form action="{{route('plans.store')}}" class="form" method="POST" >
+@csrf
+@include('admin.includes.alerts')
+<div class=form-group>
+    <label>NOME</label>
+<input class="form-control" type="text" name="name" placeholder="name" value=" {{$plan->name ?? old('name')}} ">
+</div>
+<div class=form-group>
+<label>PREÇO</label>
+<input type="text" class="form-control" name="price" placeholder="price" value=" {{$plan->price ?? old('price')}} ">
+</div> 
+<div class=form-group>
+<label>DESCRIÇÃO</label>
+<input type="text" class="form-control" name="description" placeholder="description" value="{{$plan->description ?? old('description')}} ">
+</div>
+<div class=form-group>
+<button type="submit" class="btn btn-success">Enviar</button>
+</div>
+</form>
+
+            </div>
+            </div>
+
+
+@endsection   
+
+-------------------------------------vamos CRIAR O METODO create e store em PlanController
+------- NETODO CREATE
+public function create(Request $request)
+        {
+            return view('admin.pages.plans.create');
+        }
+
+----------------------------------------------- O METODO STORE PODE SER ASSIM, mais vai dar um erro pois colocamos
+no Fillable o CAMPO 'uri", mas podemos CORRIGIR COM O DEBAIXO
+ public function store(Request $request)
+        {
+
+            $this->repository->create($request->all());
+            return redirect ()-> route('plans.index');
+        }
+    
+-----------------------------------------------------------------------Q STORE FIZ ESSE com uma VARIAVEL $data e usando 
+o KEBAB , para isso DEFININOS  A CLASSE NO INICIO (ACIMA)
+use Illuminate\Support\Str;
+ public function store(Request $request)
+        {
+            $data = $request->all();
+            $data['url']= Str::kebab($request->name);
+            $this->repository->create($data);
+            return redirect ()-> route('plans.index');
+        }
+---------------Confere o fillable na MODEL Plans
+protected $fillable = ['name', 'url', 'price', 'description'];
+
+--------------------------------------------------------------------------OK...PRONTO...O CAMPO PREÇO nao aceita virgula
+somente ponto nos centavos
+
+-------------------EXIBIR DETALHES DO PLANO-----------------------------------------------DETALHES
+
+---Criar rotas tipo get passando a url, poderia ser o id (mais comun) PELO METODO Show
+
+Route::get('/admin/plans/{url}', 'Admin\PlanController@show')->name('plans.show');
+Route::post('/admin/plans', 'Admin\PlanController@store')->name('plans.store');
+Route::get('/admin/plans/create', 'Admin\PlanController@create')->name('plans.create');
+Route::get('/admin/plans', 'Admin\PlanController@index')->name('plans.index');
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+-------------------------------NO PLANSCONTROLLER CRIAR O METODO Show------------------------
+
+public function show($url)
+        {
+            $plan = $this->repository->where('url', $url)->first();
+        if(!$plan)
+        {
+            return redirect ()-> back();
+            return view('admin.pages.plans.show', [
+                'plan'=>  $plan
+            ]);
+        }
+----------------------------------------------------E FAZENOS NOSSA ViEW Show em admin\pages\plans\
+
+@extends('adminlte::page')
+
+@section('title', "DETALHE Planos  {$plan->name} ")
+
+@section('content_header')
+<h1>Detalhe do Palno <b>{{ $plan->name }}</b>  </h1>
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            <div class="card-body">
+            <ul>
+            <li>
+            <strong>NOME</strong> {{ $plan->name }}
+            </li>
+            <li>
+            <strong>Url</strong> {{ $plan->url }}
+            </li>
+            <li>
+            <strong>PREÇO</strong> R$ {{ nunber_format($plan->price, 2, ',', .'')  }}
+            </li>
+            <li>
+            <strong>DESCRIÇÂO</strong> {{ $plan->description }}
+            </li>
+            </ul>
+            </div>
+            </div>
+            @endsection
+--------------------------------------------------E NA view Index LEMBBAR DE FAZER OLINK PARA ROTA CORRETA 
+COM O PARAMETRO url (PODIA SER iD ----mais comun)
+
+ @foreach($plans as $plan)
+                 <tr>
+                    <td>{{ $plan->name }}</td>
+                    <td>{{ $plan->price }}</td>
+                    <td>
+                    <a href="{{route ('plans.show', $plan->url)}}" class="btn btn-warning">VER</a>
+                    </td>
+                    </tr>
+                @endforeach
+
+----------------ESTAR DANDO ERRO NA ROTA DO ADD E NAO ACEITA FORMATO NUMBER-------------------------ERROR|
+
+
+----------------------------DELETAR PLANO-------------------------------------------------------------
+-----------------CRIAR ROUTER de metodo delete
+
+Route::delete('/admin/plans/{url}', 'Admin\PlanController@destroy')->name('plans.destroy');
+Route::get('/admin/plans/{url}', 'Admin\PlanController@show')->name('plans.show');
+Route::post('/admin/plans', 'Admin\PlanController@store')->name('plans.store');
+Route::get('/admin/plans/create', 'Admin\PlanController@create')->name('plans.create');
+Route::get('/admin/plans', 'Admin\PlanController@index')->name('plans.index');
+
+Route::get('/', function () {
+    return view('welcome');
+});
+---------------------------------------------------------------------------------------------------------
+----------EM PLANCONTROLLER FAZ O METODO DETROY
+
+public function destroy($url)
+    {
+        $plan = $this->repository
+                        ->where('url', $url)
+                        ->first();
+
+        if (!$plan)
+            return redirect()->back();
+        
+            $plan->delete();
+
+        return redirect()->route('plans.index');
+    }
+
+-------------------------------AGORA NO PAGINA SHOR CRIA UM FORM COM O BOTAO E METODO DELETE
+@extends('adminlte::page')
+@section('title', "DETALHE DO Planos  {$plan->name} ")
+@section('content_header')
+<h1>Detalhe do PLANO <b>{{ $plan->name }}</b>  </h1>
+@stop
+@section('content')
+
+            <div class="card">
+            <div class="card-body">
+            <ul>
+            <li>
+            <strong>NOME</strong> {{ $plan->name }}
+            </li>
+            <li>
+            <strong>Url</strong> {{ $plan->url }}
+            </li>
+            <li>
+            <strong>PREÇO</strong> R$ {{ $plan->price  }}
+            </li>
+            <li>
+            <strong>DESCRIÇÂO</strong> {{ $plan->description }}
+            </li>
+          
+            </ul>
+
+                <form action=" {{ route('plans.destroy', $plan->url) }}"  method="POST"  >
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger">DELETAR O PLANO {{ $plan->name }}</button>
+               
+                </form>
+
+            </div>
+            </div>
+            @endsection
+---------------------------------------------------------OK.....DEU CERTO ...MAS CONTINUA INATIVO O BOTAO ADD
+
+-------------PESQUISAR PLANOS ----------------------------------------------
+
+----------CRIAR ROUTER TIPO Any===========================
+Route::any('/admin/plans/search', 'Admin\PlanController@search')->name('plans.search');
+Route::delete('/admin/plans/{url}', 'Admin\PlanController@destroy')->name('plans.destroy');
+Route::get('/admin/plans/{url}', 'Admin\PlanController@show')->name('plans.show');
+Route::post('/admin/plans', 'Admin\PlanController@store')->name('plans.store');
+Route::get('/admin/plans/create', 'Admin\PlanController@create')->name('plans.create');
+Route::get('/admin/plans', 'Admin\PlanController@index')->name('plans.index');
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+
+---------EM INDEX (sera usada essa view para receber) ONDE ESCREVEMOS E GUARDAMOS O LOCAL DE #FILTER, COLOCAREMOS UM FORM com mETODO POST E NOSSA DIRETRIZA @csrf
+@stop
+
+@section('content')
+   
+            <div class="card">
+            <div class="card-header">
+        <form action="{{ route('plans.search') }}" method="POST" class="form form-inline">
+        @csrf
+        <input type="text" name="Filter" placeholder="NOME" class="form-control" >
+        <button type="submit" class="btn btn-dark">PESQUISAR</button>
+        </form>
+
+----------------EM MODELS\PLANS VAMOS CRIAR UM METODO CHAMADO search (PODE COCACTENAT   $results = $this->where('name', 'LIKE', '%'.$filter.'%' ))
+ protected $table = 'plans';
+    protected $fillable = ['name', 'url', 'price', 'description'];
+
+     public function search($filter = null) {
+
+            $results = $this->where('name' , 'LIKE', "%{$filter}%" )
+                            ->orwhere('description' , 'LIKE', "%{$filter}%" )
+                            ->paginate(1);
+            return $results ;                
+    }
+}
+
+-------------------NO PLANSCONTROLLER FAREMOS O METODO search
+public function search(Request $request)
+    {
+         //$filters = $request->except('_token');
+
+        $plans = $this->repository->search($request->filter);
+
+        return view('admin.pages.plans.index', [
+            'plans' => $plans,
+            // 'filters' => $filters,
+        ]);
+    }
+-------------------------------------------------------------------------------------OK ...DEU CERTO
+POREM ELE PERDE O FILTRO ... VAMOS CORRIGIR INDO NA PAGINA INDEX E VERIFICAR SE ESTAR FILTRANDO
+ANTES VAMOS  criar (LIBERAR) a variavel $filters - com todos os registros exceto o __Token
+public function search(Request $request)
+    {
+         $filters = $request->except('_token');
+
+        $plans = $this->repository->search($request->filter);
+
+        return view('admin.pages.plans.index', [
+            'plans' => $plans,
+             'filters' => $filters,
+        ]);
+    }
+
+--- E AGORA SIM CONDICIONAR NA PAGINA INDEX SE A VARIAVEL EXISTE
+se a variavel filters existe faça de uma forma se nao faça no modo DEFAULD
+   </div>
+            </div>
+
+            <div class="card-footer">
+
+                @if (isset ($filters)) 
+                {!! $plans->appends($filters)->links() !!}
+                @else
+                 {!! $plans->links() !!}
+                @endif
+
+               
+            </div>
+
+@stop
+----------------------------------------------------------------------------------OK PERFEITO - 
+
+---TAMBEM PODEMOS PREENCHER O CAMPOS COM value=" xxxxxxx"...FICAR ASSIM NOA view INDEX
+ @csrf
+        <input type="text" name="Filter" placeholder="NOME" class="form-control" value="{{ $filters ['filter']  ?? ''}}" >
+
+----TAMBEM LIBEREI A PAGINAÇÂO defauld a MODEL
+ ->orwhere('description' , 'LIKE', "%{$filter}%" )
+                            ->paginate();
+            return $results ;                
+    }
+
+------------------------------------------CRIAR BREADNDCRUMB----------------
+CRIAR UMA ROTA Admin PARA O DASHBOARD
+Route::get('/admin/plans/create', 'Admin\PlanController@create')->name('plans.create');
+Route::get('/admin/plans', 'Admin\PlanController@index')->name('plans.index');
+
+Route::get('/admin', 'Admin\PlanController@index')->name('admin.index');
+
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+----VAMOS NA view INDEX
+
+@section('title', 'Planos')
+
+@section('content_header')
+
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{route('admin.index')}} ">Dashboard</a></li>
+    <li class="breadcrumb-item active" aria-current="page"><a href="{{route('plans.index')}} ">Planos</a></li>
+  </ol>
+</nav>
+
+<h1>PLANOS  <a href="{{route('plans.create')}}" class="btn btn-dark">ADD<i class="far fa-plus-square"></i></a></h1>
+
+@stop
+
+@section('content')
+------------------------------------------------------------------------------OK FICOU COMO O DESEJADO
+
+------------ COLOCAR ICONE ----MAQUIAGEM--------------------------
+VAMOS NO SITE DE ICONE https://fontawesome.com/ COPIA O LINK E COLOCA ONDE DESEJAR (ADD e DELETAR)
+<h1>PLANOS  <a href="{{route('plans.create')}}" class="btn btn-dark">ADD<i class="far fa-plus-square"></i></a></h1>
+<button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i>DELETAR O PLANO {{ $plan->name }}</button>
+
+---E NO MENU TAMBEM Adminlte
+'icon' =>'fas fa-list-ol'
+-------------------------------------------------------------------------------------------------------------
+-------------------EDITAR PLANO------------------------------------------------------------------EDITAR
+------SEMPRE CRIAR Router NO INICIO OU FINAL. DEVE VEZ VAMOS CRIAR A router Edit e Upade (put)
+Route::put('/admin/plans/{url}', 'Admin\PlanController@update')->name('plans.update');
+
+Route::get('/admin/plans/{url}/edit', 'Admin\PlanController@edit')->name('plans.edit');
+------------------------------------------------------------------------------
+
+COLOCAR UM BOTÃO AO LADO DO BOTAO VER NA view INDEX e FAZER UM LINK PARA UMA ROTA EDITAR, passando
+ID ou Url
+                @foreach($plans as $plan)
+                 <tr>
+                    <td>{{ $plan->name }}</td>
+                    <td>{{ $plan->price }}</td>
+                    <td style="width: 50px;">
+                    <a href="{{ route('plans.edit', $plan->url) }}" class="btn btn-warning">EDITAR</a>
+                    <a href="{{ route('plans.show', $plan->url) }}" class="btn btn-warning">VER</a>
+                    </td>
+                    </tr>
+                @endforeach
+            </body>
+
+-------------FAZER NO view Edit    
+NOTE QUE ESSEA View JA DEVE VIM TRAZENDO AS INFORMAÇÂO DO PLANO DESEJADO (usar value="{{$plan->price}}"), E DEVE VIM DIZENDO O METODO DE ENVIO
+(@method('PUT')) ELA VAI REPASSAR PARA O METODO UPDATE PELA url {{route('plans.update $plan->url')}}",
+PODERIA SER POR ID (MAIS FREQUENTE)
+@extends('adminlte::page')
+
+@section('title', "EDITANDO Planos {$plan->name}")
+
+@section('content_header')
+<h1>EDITANDO Planos {{$plan->name}}  </h1>
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            <div class="card-body">
+            <form action="{{route('plans.update', $plan->url)}}" class="form" method="POST" >
+@csrf
+@method('PUT')
+<div class=form-group>
+    <label>NOME</label>
+<input class="form-control" type="text" name="name" placeholder="name" value="{{$plan->name}}">
+</div>
+<div class=form-group>
+<label>PREÇO</label>
+<input type="text" class="form-control" name="price" placeholder="price" value="{{$plan->price}}">
+</div>
+<div class=form-group>
+<label>DESCRIÇÃO</label>
+<input type="text" class="form-control" name="description" placeholder="description" value="{{$plan->description}}">
+</div>
+<div class=form-group>
+<button type="submit" class="btn btn-success">Enviar</button>
+</div>
+</form>
+
+            </div>
+            </div>
+
+
+@endsection                      
+
+----------------CRIAR METODO EDIT e UPDATE NO PLANSCONTROLLER
+---METODO EDITE
+    public function edit($url)
+    {
+        $plan = $this->repository->where('url', $url)->first();
+
+        if (!$plan)
+            return redirect()->back();
+
+        return view('admin.pages.plans.edit', [
+            'plan' => $plan
+        ]);
+    }
+
+----METODO UPDATE
+     public function update(Request $request,  $url)
+    {
+        $plan = $this->repository->where('url', $url)->first();
+
+        if (!$plan)
+            return redirect()->back();
+
+        $plan->update($request->all());
+
+        return redirect()->route('plans.index');
+    }
+
+-----------------------------------------------------------------------------------OK EDITANDO
+---VOCE PODE PEGAR TUDO QUE `TIVER DE COMUM COLOCAR EM OUTROS FORMULARIOS (panels)
+CHAMANDO PELO @include NO LOCAL QUE DESEJAR
+
+
+---------------------IMPORTANTE NESSE MOMENTO--------------------------------
+---ERRARA ---A ROTA DE CREATE TEM QUE VIM ANTES DA CHAMADA DA URL, ENTAO VAMOS COLOCAR ANTES OU LA EM CIMA
+Route::get('/admin/plans/create', 'Admin\PlanController@create')->name('plans.create');
+Route::put('/admin/plans/{url}', 'Admin\PlanController@update')->name('plans.update');
+Route::get('/admin/plans/{url}/edit', 'Admin\PlanController@edit')->name('plans.edit');
+Route::any('/admin/plans/search', 'Admin\PlanController@search')->name('plans.search');
+Route::delete('/admin/plans/{url}', 'Admin\PlanController@destroy')->name('plans.destroy');
+Route::get('/admin/plans/{url}', 'Admin\PlanController@show')->name('plans.show');
+Route::post('/admin/plans', 'Admin\PlanController@store')->name('plans.store');
+
+Route::get('/admin/plans', 'Admin\PlanController@index')->name('plans.index');
+
+Route::get('/admin', 'Admin\PlanController@index')->name('admin.index');
+
+
+Route::get('/', function () {
+    return view('welcome');
+});
+----------------------------------------------------------------------------------------------------
+
+----------VALIDAR DADOS ------------------------------------------------IMPOTANTE
+ESTAR FUNCIONANDO MASI PRECISAMOS VALIDAR OS DADOS PARA SEGURANÇA, PARA  ISSO VAMOS CRIAR 
+UMA CLASSE REQUESTE PARA PROTEGER A INTEGRIDADE DOS DADOS
+
+# php artisan make:request StoreUpadatPlan
+
+CRIAR UM METODO EM HTTP\REQUESTE ONDE FAZEMOS A LOGICA
+
+ public function authorize()
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        return [
+            'name' => 'required|min:4|max:255|unique:plans',
+            'price'=> 'required|regex:/^\d+(\.\d{1,2})?$/',   
+             'description' => 'required|min:4|max:255',
+        ];
+    }
+}
+
+---E VAMOS LA NO PLANSCONTROLLER e NO METODO STORE e UPDATE TEMOS QUE INGESTAR EL NO LUGAR DE REQUESTE
+
+----store
+        public function store(StoreUpadatPlan $request)
+        {
+            $data = $request->all();
+            $data['url']= Str::kebab($request->name);
+            $this->repository->create($data);
+            return redirect ()-> route('plans.index');
+        }
+
+-------update
+public function update(StoreUpadatPlan $request,  $url)
+    {
+        $plan = $this->repository->where('url', $url)->first();
+
+        if (!$plan)
+            return redirect()->back();
+
+        $plan->update($request->all());
+
+        return redirect()->route('plans.index');
+    }
+
+
+
+
+---E IMPORTAR A CLASSE NO INICIO User
+
+
+namespace App\Http\Controllers\Admin;
+use App\Http\Requests\StoreUpadatPlan;
+use Illuminate\Support\Str;
+use App\Http\Controllers\Controller;
+use App\Models\Plan;
+use Illuminate\Http\Request;
+
+--------------------------------------------------VAMOS COLOCAR AS MENSAGENS DE ERROS -ALERT
+
+FAZ UM view so de ERROs Em admin\includes\alerts
+@if ($errors->any())
+    <div class="alert alert-warning">
+        @foreach ($errors->all() as $error)
+            <p>{{ $error }}</p>
+        @endforeach
+    </div>
+@endif
+
+@if (session('message'))
+    <div class="alert alert-success">
+        {{ session('message') }}
+    </div>
+@endif
+
+@if (session('error'))
+    <div class="alert alert-danger">
+        {{ session('error') }}
+    </div>
+@endif
+
+@if (session('info'))
+    <div class="alert alert-warning">
+        {{ session('info') }}
+    </div>
+@endif
+
+-------- E CHAMA A CLASSE ERROS ONDE DESEJAR PELO METODO @include
+EM CREATE.BLADE.PHP COMO EXEMPLO
+
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            <div class="card-body">
+            <form action="{{route('plans.store')}}" class="form" method="POST" >
+@csrf
+@include('admin.includes.alerts')
+<div class=form-group>
+    <label>NOME</label>
+<input class="form-control" type="text" name="name" placeholder="name">
+</div>
+<div class=form-group>
+
+----------------------------------------------------OK ....AQUI DANDO CERTO  
+
+MAS SE FORMOS EDITAR DARÁ UM ERRO DE VALIDAÇÂO , ENTAO TEREMOS QUE FAZER UMA EXCESOA NO StoreUpadePlans
+pois ele vai ver que existe um plano como mesmo nome e nao vai aceitar por isso vamos fazer a excessão
+PODE SER FEITO PELO ID ou url (vamos fazer url ja que estamos trabalhando com ela)
+
+  public function rules()
+    {
+
+                $url= $this->segment(3);   //Posição na Url (endereço)
+
+        return [
+            'name' => "required|min:4|max:255|unique:plans,name,{$url},url",
+            'price'=> 'required|regex:/^\d+(\.\d{1,2})?$/',   
+             'description' => 'required|min:4|max:255',
+        ];
+    }
+}
+
+
+--------------------------------------------------------------------------------------------OK PERFEITO
+-----------CRIAR OBSERVADOR------------------------------------------------ATENÇÂO VAMOS MUDAR PLANCOMTROLLER (create e update)
+Ele fica monitorando o eloquente do laravel e realiza uma função, ante, durante ou DEPOIS
+no nosso caso vamos fazer com que ele ao cadastrar um plano crie uma url desse plano para nós (automaticamnete)
+
+# php artisan make:observer PlanObserver --model=Models\Plan
+
+---CRIOU EM app\Obsercer\PlanObserver
+
+-----VAMOS FAZER A AÇÂO ANTES, POR ISSO VAMOS USAR  EVENTO  creating e updating
+
+PRIMEIRO VAMOS NO PLANCONTROLLER E TRAZER A DECLARAÇÂO CLAASE StoreUpadePlan e Str PARA PLANOBSERVER , pois nao vamos usar mais la
+use App\Http\Requests\StoreUpadatPlan; 
+use Illuminate\Support\Str;
+O PlanObserver FICA ASSIM
+
+<?php
+
+namespace App\Observers;
+use Illuminate\Support\Str;
+use App\Http\Requests\StoreUpadatPlan;
+use App\Models\Plan;
+
+class PlanObserver
+{
+    /**
+     * Handle the plan "creating" event.
+     *
+     * @param  \App\Models\Plan  $plan
+     * @return void
+     */
+    public function creating(Plan $plan)
+    {
+        $plan->url=Str::kebab($plan->name);
+    }
+
+    /**
+     * Handle the plan "updating" event.
+     *
+     * @param  \App\Models\Plan  $plan
+     * @return void
+     */
+    public function updating(Plan $plan)
+    {
+        $plan->url=Str::kebab($plan->name);
+    }
+
+   
+}
+------------------------------------------------------------------------------------------
+DECLARAMOS EM Provide\AppServiceProvider.php
+public function boot()
+    {
+        Schema::defaultStringLength(191);
+       // Schema::defaultStringlength(191);
+       Plan::observe(PlanObserver::class);
+    }
+}
+
+VAMOS SUBSTITUIR NO PLANCONTROLLER. FICANDO ASSIM (vou coloacar a pagina inteira, mas so muda o metodo Store e update)
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use Illuminate\Support\Str;
+use App\Http\Controllers\Controller;
+use App\Models\Plan;
+use Illuminate\Http\Request;
+
+class PlanController extends Controller
+{
+
+       private $repository; 
+      
+       public function __construct(Plan $plan)
+       {
+           $this->repository= $plan;
+        }
+       public function index()
+        {
+                $plans = $this->repository->latest()->paginate();
+            return view('admin.pages.plans.index', [
+                'plans' => $plans,
+                ]);
+        }
+
+        public function create(Request $request)
+        {
+            return view('admin.pages.plans.create');
+           
+        }
+
+        public function store(Request $request)
+        {
+            // $data = $request->all();
+            // $data['url']= Str::kebab($request->name);
+            $this->repository->create($request->all());
+            return redirect ()-> route('plans.index');
+        }
+
+        public function show($url)
+    {
+        $plan = $this->repository->where('url', $url)->first();
+
+        if (!$plan)
+            return redirect()->back();
+
+        return view('admin.pages.plans.show', [
+            'plan' => $plan
+        ]);
+    }
+                       
+    public function destroy($url)
+    {
+        $plan = $this->repository
+                        ->where('url', $url)
+                        ->first();
+
+        if (!$plan)
+            return redirect()->back();
+        
+            $plan->delete();
+
+        return redirect()->route('plans.index');
+    }
+
+    public function search(Request $request)
+    {
+        $filters = $request->except('_token');
+
+        $plans = $this->repository->search($request->filter);
+
+        return view('admin.pages.plans.index', [
+            'plans' => $plans,
+             'filters' => $filters,
+        ]);
+    }
+   
+    public function edit($url)
+    {
+        $plan = $this->repository->where('url', $url)->first();
+
+        if (!$plan)
+            return redirect()->back();
+
+        return view('admin.pages.plans.edit', [
+            'plan' => $plan
+        ]);
+    }
+ 
+    public function update(Request $request,  $url)
+    {
+        $plan = $this->repository->where('url', $url)->first();
+
+        if (!$plan)
+            return redirect()->back();
+
+        $plan->update($request->all());
+
+        return redirect()->route('plans.index');
+    }
+
+}
+----------------------------------------------------------------------------Ok Perfeito
+
+
+2-------PARTE 2 DETALHES DO PLANO---------------------------------------------------------DETALHES
+
+ANTES DE TUDO VAMOS ORGANIZAR AS ROTAS NU GRUPO (group)
+
+Route::prefix('admin')
+                        ->namespace('Admin')
+                        ->group(function()
+
+{
+    Route::get('plans/create', 'PlanController@create')->name('plans.create');
+    Route::put('plans/{url}', 'PlanController@update')->name('plans.update');
+    Route::get('plans/{url}/edit', 'PlanController@edit')->name('plans.edit');
+    Route::any('plans/search', 'PlanController@search')->name('plans.search');
+    Route::delete('plans/{url}', 'PlanController@destroy')->name('plans.destroy');
+    Route::get('plans/{url}', 'PlanController@show')->name('plans.show');
+    Route::post('plans', 'PlanController@store')->name('plans.store');
+    
+    Route::get('plans', 'PlanController@index')->name('plans.index');
+    
+    Route::get('/', 'PlanController@index')->name('admin.index');
+
+});
+
+-------------------------CRIAR MODEL DETALHES DENTRO DE MODELS--------------------------------------
+# php artisan make:model Models\DetailPlan -m
+
+---CODIFICA A Model
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class DetailPlan extends Model
+{
+    protected $table = 'detail_plans';
+    //protected $fillable = ['name', 'url', 'price', 'description'];
+}
+---------------------CODIFICA A MIGARTION (fazendo o relacioamaneto)
+ public function up()
+    {
+        Schema::create('detail_plans', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('plan_id');
+            $table->foreign('plan_id')->references('id')->on('plans')->onDelete('cascade');
+
+            $table->String('name');
+            $table->timestamps();
+        });
+    }
+-------------------RODAR MIGRATE PARA CRIAR TABELA
+# php artisan migrate
+
+-----------------------------------------------------------------OK TABELA CRIADA
+
+
+---------AGORA VAMOS FAZER UM RELACIONAMNETO DE PLAN COM DETAIL--------------------------------ATENÇÂO IMPORTANTE
+O relacionamneto entre essa duas tabelas vai ser de 1:1 para PLAn pois tera so tera varios detalhe
+----O RELACIONAMNETO  NA Model Plan.php VAI SER 
+class Plan extends Model
+{
+    protected $table = 'plans';
+    protected $fillable = ['name', 'url', 'price', 'description'];
+
+        // RELACIONAMENTO COM DETAIL
+
+    public function details() {
+                return $this->hasMany(DetailPlan::class);
+    }   
+-----------E NA Model DETAIL VAI SER MUITOS PARA UM N:1 pois o detalhe é espcifico de um plano
+
+class DetailPlan extends Model
+{
+    protected $table = 'detail_plans';
+    //protected $fillable = ['name', 'url', 'price', 'description'];
+
+    // RELACIONAMENTO COM PLAn 
+    public function detaplanils() {
+                return $this->abelongsTo(Plan::class);
+    }   
+}
+-------------------------------------VAMOS CRIAR O DETAILCONTROLLER ----------------------------
+# php artisan make:controller Admin\DetailPlanController
+
+--------------E CRIAR A ROuter INDEX DO DETALHE (acima das rotas do PLANO)
+Route::get('plans/{url}/details', 'DetailPlanController@index')->name('details.splans.index');
+
+---VAMOS TRALHAR NO DETAILCONTROLLER ---IMPORTANTE
+--FAREMOS O METODO CONSTRUCTOR PRIMEIRAMENTE COM DOIS OBJETO repository e Plan
+class DetailPlanController extends Controller
+{
+    private $repository, $plan;
+
+    public function __construct(DetailPlan $detailplan, Plan $plan )
+       {
+           $this->repository= $detailplan;
+           $this->plan = $plan;
+        }
+-------DEPOIS COMECAREMOS PELO METODO iNDEX DO DETAILPLANCOMTROLLER (pela url)
+
+public function index($urlPlan)
+        {
+              If(!$plan = $this->plan->where ('url', $urlPlan)->first()) {         //SE NÃo ACHOU (recuperando pela url)
+                return redirect()->back();
+              }                                                                   //SE ACHOU (recuperando pela url)
+                     
+              // $details = $plan->details();
+              $details = $plan->details()->paginate(); 
+              
+            return view('admin.pages.plans.details.index', [
+                'plan' => $plan,
+                'details'=> $details,
+
+                ]);
+                
+--------------------------------------------CRIAR A view DETAILS.INDEX -LISTAR - (dentro de admin.pages.plans.details)
+--ANTES POREM NA INDEX DO PLANO COLOCA UM BOTAO COM LINK PARA O DETALHES DO PLANO
+  @foreach($plans as $plan)
+                 <tr>
+                    <td>{{ $plan->name }}</td>
+                    <td>{{ $plan->price }}</td>
+                    <td style="width: 250px;">
+                    <a href="{{ route('plans.details.index', $plan->url) }}" class="btn btn-warning">Detalhes</a>
+                    <a href="{{ route('plans.edit', $plan->url) }}" class="btn btn-warning">Edit</a>
+                    <a href="{{ route('plans.show', $plan->url) }}" class="btn btn-warning">VER</a>
+                    </td>
+                    </tr>
+                @endforeach
+
+-----ADORA SIM A view Detailes.index     
+@extends('adminlte::page')
+
+@section('title', "Detalhes do Planos {$plan->name}")
+
+@section('content_header')
+
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{route('admin.index')}} ">Dashboard</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('plans.index')}}" >Planos</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('plans.show', $plan->url)}}" >{{$plan->name}}</a></li>
+    <li class="breadcrumb-item active" aria-current="page"><a href="{{route('details.plans.index', $plan->url)}}" class="active">Detalhes</a></li>
+  </ol>
+</nav>
+
+<h1>DETALHE DO PLANOS {{$plan->name}} <a href="{{route('plans.create')}}" class="btn btn-dark">ADD<i class="far fa-plus-square"></i></a></h1>
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            
+        <div class="card-body">
+
+ @include ('admin\includes\alerts')
+
+        <table class="table table-condensed">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th style="width: 50px">Ação</th>
+
+                </tr>
+
+            </thead>
+            <body>
+                @foreach($details as $detail)
+                 <tr>
+                    <td>{{ $detail->name }}</td>
+                    
+                    <td style="width: 250px;">
+                    <a href="{{ route('plans.edit', $plan->url) }}" class="btn btn-warning">EDITAR</a>
+                    <a href="{{ route('plans.show', $plan->url) }}" class="btn btn-warning">VER</a>
+                    </td>
+                    </tr>
+                @endforeach
+            </body>
+        </table>
+       
+    
+                </div>
+            </div>
+
+            <div class="card-footer">
+
+                @if (isset ($filters)) 
+                {!! $details->appends($filters)->links() !!}
+                @else
+                 {!! $details->links() !!}
+                @endif
+
+               
+            </div>
+
+@stop
+
+--------------------------------------OK PERFEITO
+
+---------------------CADASTRAR NOVOS DETALHES DE PLANO-------------------------------CADASTRAR DETALHES
+---CRIAR router Create e store (que cadastra realmente)
+
+Route::post('plans/{url}/details', 'DetailPlanController@store')->name('details.plans.store');
+Route::get('plans/{url}/details/create', 'DetailPlanController@create')->name('details.plans.create');
+Route::get('plans/{url}/details', 'DetailPlanController@index')->name('details.plans.index');
+
+
+ --------------------------EM DetailPlanController VAMOS FAZER NOSSO METODO create e story------------
+------METODO create
+public function create($urlPlan)
+        {
+            if (!$plan = $this->plan->where('url', $urlPlan)->first()) {
+                return redirect()->back();
+            }
+    
+            return view('admin.pages.plans.details.create', [
+                'plan' => $plan,
+            ]);
+        }
+------METODO Store  VAMOS DEIXAR PRA FAZER UM POUQUINHO ADIANTE    
+        
+ -------CRIAR view create EM resource\views\admin\pages\plans\details--------------------
+ --ATENÇÂO
+ Veja que aqui voce alem de fazer a view create, tera que modificar o link da view Index no botao ADD
+ passando para  rota details.plans.create e o argumento da url do PLANO $plan->url
+
+ --VAMOS PRIMEIRO MUDAR A ROTA EM INDEX E PASSAR A URL (link do botao ADD)
+ <li class="breadcrumb-item active" aria-current="page"><a href="{{route('details.plans.index', $plan->url)}}" class="active">Detalhes</a></li>
+  </ol>
+</nav>
+<h1>DETALHE DO PLANOS {{$plan->name}} <a href="{{route('details.plans.create', $plan->url)}}" class="btn btn-dark">ADD<i class="far fa-plus-square"></i></a></h1>
+@stop
+@section('content')
+
+---CONTINUANDO O PREPARA PARA A view create - SENDO DESTA VEZ QUE VAMOS PARTIR ELA EM PARTE E FAZER
+ UM FORMULARIO UNICO TANTO PARA INCLUSÂO COMO EDIÇAÔ SEPARADAMENTE EM UM DIRETORIO datails\partils SEM ESQUECE 0 @csrf
+ E DEPOIS CHAMAR ELE NA view create PELO METODO @include
+
+
+@include('admin.includes.alerts')
+
+@csrf
+
+<div class="form-group">
+    <label>Nome:</label>
+<input type="text" name="name" placeholder="Nome" class="form-control" value="{{ $detail->name ?? old('name') }}">
+</div>
+<div class="form-group">
+    <button type="submit" class="btn btn-info">Enviar</button>
+</div>
+
+---AGORA SIM FAREMOS A view create 
+@extends('adminlte::page')
+
+@section('title', "Adicionar novo Detalhes do Planos {$plan->name}")
+
+@section('content_header')
+
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{route('admin.index')}} ">Dashboard</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('plans.index')}}" >Planos</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('plans.show', $plan->url)}}" >{{$plan->name}}</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('details.plans.index', $plan->url)}}" class="active">Detalhes</a></li>
+    <li class="breadcrumb-item active" aria-current="page"><a href="{{route('details.plans.create', $plan->url)}}" class="active">Novo</a></li>
+</ol>
+</nav>
+
+<h1>ADICIONAR NOVO DETALHE DO PLANOS {{$plan->name}} </h1>
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            
+        <div class="card-body">
+        
+        <form action=" {{ route('details.plans.store', $plan->url)}}" method="POST">
+        @include('admin.pages.plans.details.partials.form')
+
+        </form>
+
+       </div>
+       </div>
+@endsection
+---------------------------------------------------OK PERFEITO
+
+-------------VAMOS NA MODEL detailsplan.php AGORA DEFINIR OS ATRIBUTOS QUE PODEM SER PREECHIDOS COM OS DADOS
+
+class DetailPlan extends Model
+{
+    protected $table = 'detail_plans';
+    //protected $fillable = ['name', 'url', 'price', 'description'];
+
+    protected $fillable = ['name'];
+
+    // RELACIONAMENTO COM PLAn 
+    public function plan() {
+                return $this->abelongsTo(Plan::class);
+    }   
+}
+
+
+
+------E AGOSRA FAZER O METODO Store      
+        //public function store(StoreUpdateDetailPlan $request, $urlPlan)
+        public function store(Request $request, $urlPlan)
+        {
+            if (!$plan = $this->plan->where('url', $urlPlan)->first()) {
+                return redirect()->back();
+            }
+    
+            // $data = $request->all();
+            // $data['plan_id'] = $plan->id;
+            // $this->repository->create($data);
+            $plan->details()->create($request->all());
+    
+            return redirect()->route('details.plans.index', $plan->url);
+        }
+
+------------------------------------------------------------------------------------Ok PERFEITO (sem restrição)
+----EDITAR DETALHE DE UM PLANO------
+---PRIMERO CRIA AS ROTAS
+
+Route::put('plans/{url}/details/{idDetail}', 'DetailPlanController@update')->name('details.plans.update');
+    Route::get('plans/{url}/details/{idDetail}/edit', 'DetailPlanController@edit')->name('details.plans.edit');
+    Route::post('plans/{url}/details', 'DetailPlanController@store')->name('details.plans.store');
+    Route::get('plans/{url}/details/create', 'DetailPlanController@create')->name('details.plans.create');
+    Route::get('plans/{url}/details', 'DetailPlanController@index')->name('details.plans.index');
+
+
+-------------------------VAMOS FAZER o METODO edit e update no DetailPlanController
+public function edit($urlPlan, $idDetail)
+        {
+            $plan = $this->plan->where('url', $urlPlan)->first();
+            $detail = $this->repository->find($idDetail);
+    
+            if (!$plan || !$detail) {
+                return redirect()->back();
+            }
+    
+            return view('admin.pages.plans.details.edit', [
+                'plan' => $plan,
+                'detail' => $detail,
+            ]);
+        }
+
+
+        public function update(Request $request, $urlPlan, $idDetail)
+         //public function update(StoreUpdateDetailPlan $request, $urlPlan, $idDetail)
+        {
+            $plan = $this->plan->where('url', $urlPlan)->first();
+            $detail = $this->repository->find($idDetail);
+    
+            if (!$plan || !$detail) {
+                return redirect()->back();
+            }
+    
+            $detail->update($request->all());
+    
+            return redirect()->route('details.plans.index', $plan->url);
+        }
+
+-----------------CRIAR A vier edit DO DETAILS ------
+--ATENÇÂO temos que passar a url do plano e o id do detail NO LINK      
+  <li class="breadcrumb-item active" aria-current="page"><a href="{{route('details.plans.edit', [$plan->url, $detail->id])}}" class="active">Edit</a></li>
+E O METODO PUT NO FORM  @method('PUT')
+-------AQUI A view edit---------------------------
+@extends('adminlte::page')
+
+@section('title', "Editar Detalhes do Planos {$detail->name}")
+
+@section('content_header')
+
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{route('admin.index')}} ">Dashboard</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('plans.index')}}" >Planos</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('plans.show', $plan->url)}}" >{{$plan->name}}</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('details.plans.index', $plan->url)}}" class="active">Detalhes</a></li>
+    <li class="breadcrumb-item active" aria-current="page"><a href="{{route('details.plans.edit', [$plan->url, $detail->id])}}" class="active">Edit</a></li>
+</ol>
+</nav>
+
+<h1>ADICIONAR NOVO DETALHE DO PLANOS {{$detail->name}} </h1>
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            
+        <div class="card-body">
+        
+        <form action=" {{ route('details.plans.update', [$plan->url, $detail->id])}}" method="POST">
+        @method('PUT')
+        @include('admin.pages.plans.details.partials.form')
+
+        </form>
+
+       </div>
+       </div>
+       @endsection
+
+-------------VAMOS EM index do DETAILS DO PLAN (onde exibe a listagem) E ATUALIZAR AS URL para as ROTAS CERTAS , PASSANDO A 
+URL DO PLAN e O ID DO DETAILS EM UMA RAIS
+
+  @foreach($details as $detail)
+                 <tr>
+                    <td>{{ $detail->name }}</td>
+                    
+                    <td style="width: 250px;">
+                    <a href="{{ route('details.plans.edit', [$plan->url, $detail->id]) }}" class="btn btn-warning">EDITAR</a>
+                    <a href="{{ route('plans.show', $plan->url) }}" class="btn btn-warning">VER</a>
+                    </td>
+                    </tr>
+                @endforeach
+            </body>
+        </table>
+
+--------------------------------------------------- OK PERFEITO
+
+---------------VALIDAR PLAN----------------------------
+----CRIAR REQUEST
+# php artisan make:request StoreUpadeDetailPlan
+E CODIFICA 
+ public function authorize()
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        return [
+            'name' => "required|min:4|max:255",
+        ];
+
+---------------------------EM SEGUIDA VAMOS EM DetailPlanController
+DECLARAMOS A CLASSE (la em cima ) E SUBISTITUIMOS (o Request por StoreUpadeDetailPlan)  NOS METODOS strore e upade         
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Requests\StoreUpadeDetailPlan;
+use App\Http\Controllers\Controller;
+
+---NOS METODOS (a subistituição)
+ public function store(StoreUpadeDetailPlan $request, $urlPlan)
+       // public function store(Request $request, $urlPlan)
+        {
+-------//public function update(Request $request, $urlPlan, $idDetail)
+         public function update(StoreUpadeDetailPlan $request, $urlPlan, $idDetail)
+        {
+-----------------------------------------------------------------------------------------OK PERFEITO
+------------------DELETAR DETAILS (em VER)---------------------
+
+----COMO SEMPRE VAMOS CRIAR AS Route (vai ter a url do plan, o detalis e o id do detalis)
+    Route::delete('plans/{url}/details/{idDetail}', 'DetailPlanController@destroy')->name('details.plans.destroy');
+    Route::get('plans/{url}/details/{idDetail}', 'DetailPlanController@show')->name('details.plans.show');
+    Route::put('plans/{url}/details/{idDetail}', 'DetailPlanController@update')->name('details.plans.update');
+    Route::get('plans/{url}/details/{idDetail}/edit', 'DetailPlanController@edit')->name('details.plans.edit');
+    Route::post('plans/{url}/details', 'DetailPlanController@store')->name('details.plans.store');
+    Route::get('plans/{url}/details/create', 'DetailPlanController@create')->name('details.plans.create');
+    Route::get('plans/{url}/details', 'DetailPlanController@index')->name('details.plans.index');
+
+---VAMOS EM DETAILSPLANCONTROLLER e FAZEMOS O METODO SHOW E DETROY
+public function show($urlPlan, $idDetail)
+        {
+            $plan = $this->plan->where('url', $urlPlan)->first();
+            $detail = $this->repository->find($idDetail);
+    
+            if (!$plan || !$detail) {
+                return redirect()->back();
+            }
+    
+            return view('admin.pages.plans.details.show', [
+                'plan' => $plan,
+                'detail' => $detail,
+            ]);
+        }
+    
+    
+        public function destroy($urlPlan, $idDetail)
+        {
+            $plan = $this->plan->where('url', $urlPlan)->first();
+            $detail = $this->repository->find($idDetail);
+    
+            if (!$plan || !$detail) {
+                return redirect()->back();
+            }
+    
+            $detail->delete();
+    
+            return redirect()
+                        ->route('details.plans.index', $plan->url)
+                        ->with('message', 'Registro detalado com sucesso');
+
+                        
+        }
+
+-------E FAZER NOSSA view SHOW     ***DICA (podemos copiar da view edit dando um cTL+SHIT+S - salvar como e nomear-la
+shoe.blade.php) ..AI FAZ AS ALERAÇÔES  
+@extends('adminlte::page')
+
+@section('title', "Detalhes do Planos {$detail->name}")
+
+@section('content_header')
+
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{route('admin.index')}} ">Dashboard</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('plans.index')}}" >Planos</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('plans.show', $plan->url)}}" >{{$plan->name}}</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('details.plans.index', $plan->url)}}" class="active">Detalhes</a></li>
+    <li class="breadcrumb-item active" aria-current="page"><a href="{{route('details.plans.edit', [$plan->url, $detail->id])}}" class="active">Detalhes</a></li>
+</ol>
+</nav>
+
+<h1> DETALHE DO PLANOS {{$detail->name}} </h1>
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            
+        <div class="card-body">
+       <ul>
+       <li><strong>NOME</strong>{{$detail->name}}
+       </li>
+       </ul> 
+       
+       </div>
+       </div>
+       @endsection
+
+---------------------TEMOS QUE IR NA LISTAGEM (index) E MODIFICAMOS A ROTA DA NOSA URL (details.plans.show) E 
+pASSA DOS PARAMNETRO EM UMA RAIS - A URL DO PLANO E O ID DO DETALHES [$plan->url, $detail->id]
+        @foreach($details as $detail)
+                 <tr>
+                    <td>{{ $detail->name }}</td>
+                    
+                    <td style="width: 250px;">
+                    <a href="{{ route('details.plans.edit', [$plan->url, $detail->id]) }}" class="btn btn-warning">EDITAR</a>
+                    <a href="{{ route('details.plans.show', [$plan->url, $detail->id]) }}" class="btn btn-warning">VER</a>
+                    </td>
+                    </tr>
+                @endforeach
+            </body>
+
+---------------------------AQUI JA ESTA EXIBINDO O PLANO EM BOTAO DETALHE\VER
+PARA REMOVER O REGISTRO (DELETAR) FAREMOS UM FORMULARIO NO FINAL DA view show.blade.php DO DETALHES DO PLANO
+PERCEBA QUE JA CODIFICAMOS O METODO DETROY NA DetailPlanController
+O FORMULARIO VAI PAR ROTA DE DETROY COM OS DOIS PARAMENTROS, URL DO PLAN E ID DO DETALHE
+NÂO ESQUECER AS DIRETRIZES @csrf e O METHOD (DELETE)
+
+  <div class="card-body">
+       <ul>
+       <li>
+           <strong>NOME</strong>{{$detail->name}}
+        </li>
+       </ul> 
+       
+       </div>
+           <div class="car-footer">
+            <form action="{{route('details.plans.destroy', [$plan->url, $detail->id])}}" method="post">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger">Deletar o Detalhe do {{$detail->name}} do {{$plan->name}} </button>
+            </form>
+
+           </div>
+
+       </div>
+@endsection
+------------------------------------------------------------OK CONFERIR --PAROU DE ADD DETALHE
+-----------ERRARA ---A ROTA DE CREATE TEM QUE VIM ANTES DA CHAMADA DA URL, ENTAO VAMOS COLOCAR ANTES OU LA EM CIMA
+Route::get('plans/{url}/details/create', 'DetailPlanController@create')->name('details.plans.create');
+
+-----------------------------------------------------------------------------OK PERFEITO
+
+---------------VAMOS AGORA EVITAR QUE UM PLANO COM DEtALHES SEJA DELETADO, ANTES DO DELTE DOS DETALHES
+vamos no metodo que DELETA o PLANO em PlanController e no metodo Detroy podemos passar todos os relacionamentos
+numa rais ou apenas um relacionamento 
+public function destroy($url)
+    {
+        $plan = $this->repository
+                        ->with ('details')
+                        ->where('url', $url)
+                        ->first();
+
+E DEPOIS FAZ UM CONDICIONAL COM IF (se existir Planos com detalhes maior que ZERO redirecione para tras e 
+mande a mensagem)    FICANDO ASSIM NOSSO DETROY METODO do PlanController
+ public function destroy($url)
+    {
+        $plan = $this->repository
+                        ->with ('details')
+                        ->where('url', $url)
+                        ->first();
+
+        if (!$plan)
+            return redirect()->back();
+        
+        if($plan->details->count>0) {
+                     return redirect()
+                     ->back()    
+                     ->with('error', 'Existe detalhes relacionado a este plano, delete primeiro os detalhes');  
+                    }
+
+            $plan->delete();
+
+        return redirect()->route('plans.index');
+    }
+---PARA EXIBIR A MENSAGEM VAMOS TER QUE IR NA view SHOW DO PLANO E EXIBE NO LOCAL DESEJADA
+CHAMANDO PELO  @include ('admin\includes\alerts')
+@extends('adminlte::page')
+
+@section('title', "DETALHE DO Planos  {$plan->name} ")
+
+@section('content_header')
+<h1>Detalhe do PLANO <b>{{ $plan->name }}</b>  </h1>
+
+@stop
+
+@section('content')
+
+            <div class="card">
+            <div class="card-body">
+            <ul>
+            <li>
+            <strong>NOME</strong> {{ $plan->name }}
+            </li>
+            <li>
+            <strong>Url</strong> {{ $plan->url }}
+            </li>
+            <li>
+            <strong>PREÇO</strong> R$ {{ $plan->price  }}
+            </li>
+            <li>
+            <strong>DESCRIÇÂO</strong> {{ $plan->description }}
+            </li>
+            
+            </ul>
+            @include ('admin\includes\alerts')
+                <form action=" {{ route('plans.destroy', $plan->url) }}"  method="POST"  >
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i>DELETAR O PLANO {{ $plan->name }}</button>
+
+                
+                </form>
+
+            </div>
+            </div>
+            @endsection
+
+    ------------------------------------------------------------------------------------------------------ OK PERFEITO
+4--------------PERFIS --PROFILES--------------------------------------------------------------------------
+  # php artisan make:model Models\Profile -m  --------------------------------USEI ESSA 
+CRIOU A MODEL PROFILES E A MIGRATION PROFILES DENTRO DE MODELS
+VAMOS EM NIGATTION PROFILES e DEFININOS AS COLUNAS DE NOSSA TABELA
+  public function up()
+    {
+        Schema::create('profiles', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name')->unique();
+                   
+            $table->string('description')->nullable();
+            $table->timestamps();
+        });
+    }
+-------------------------------------------------------
+ E NA MODELS PROFILES DEFININOS NOSSO fillable (permisao de dados no BD)
+ class Profile extends Model
+{
+    protected $fillable = ['name',  'description'];
+}
+
+---------------------CRIAR A TABELA----------------------------------
+# php artisan migrate                              USEI ESSA
+# php artisan make:migration create_profiles_table
+
+-----VAMOS NO ARQUIVO BOOTSTRAO\CONFIG\adminlte.php E CONFIGURA A DASHBOARD
+ACHAR ICON EM https://fontawesome.com/icons?d=gallery
+'menu' => [
+                   
+        [
+            'text' => 'Planos',
+            'url'  => 'admin/plans',
+            'icon' =>'fas fa-list-ol'
+        ],
+        [
+            'text'        => 'Perfis',
+            'url'         => 'admin/profiles',
+            'icon'        => 'fas fa-address-book',
+           
+        ],
+
+---------------------  FAZER LISTAGEM DOS PERFIS (metodo index)---------------------
+
+-----PRIMEIRAMENTE COMEÇAMOS COM AS ROTAS DOS PERFIS EM WEB.PHP  E VAMOS FAZER PELO METODO resource--------------------
+Route::resource('profiles', 'ACL\ProfileController')
+
+---------LOGO EM SEGUIDA CRIAMOS OS CONTROLLER QUE VAI FICAR EM Admin\ACL
+# php artisan make:controller Admin\ACL\ProfileController
+
+
+---------O CONSTRUCTOR -> EM ProfileController CRIAMOS UMA VARIAVEL PARA ARMAZENAR UM OBJETO DE PROFILE-----------------------------------
+class ProfileController extends Controller
+{
+    protected $repository;
+
+    public function __construct(Profile $profile)
+    {
+        $this->repository = $profile;
+
+        $this->middleware(['can:profiles']);
+    }
+---------E PARA LISTAR NO METODO INDEX ARMAZENAOS O REULSTADO EM UMA VAIAVEL $profile
+E ENCAMINHA A VARIAVEL QUE ESTA COM O REPOSITORIO PARA A view index
+public function index()
+    {
+        $profiles = $this->repository->paginate();
+
+        return view('admin.pages.profiles.index', compact('profiles'));
+    }
+
+-----VAMOS CRIAR NOSSA view EM Admin\pages\profiles\index.blade.php
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            
+        <div class="card-body">
+
+        @include ('admin\includes\alerts')
+
+        <table class="table table-condensed">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th style="width: 50px">Ação</th>
+
+                </tr>
+
+            </thead>
+            <body>
+                @foreach($profiles as $profile)
+                 <tr>
+                    <td>{{ $profile->name }}</td>
+                    
+                    <td style="width: 250px;">
+                    <a href="{{ route('profiles.edit',  $profile->id) }}" class="btn btn-warning">EDITAR</a>
+                    <a href="{{ route('profiles.show',  $profile->id) }}" class="btn btn-warning">VER</a>
+                    </td>
+                    </tr>
+                @endforeach
+            </body>
+        </table>
+       
+    
+                </div>
+            </div>
+
+            <div class="card-footer">
+
+                @if (isset ($filters)) 
+                {!! $profiles->appends($filters)->links() !!}
+                @else
+                 {!! $profiles->links() !!}
+                @endif
+
+               
+            </div>
+
+@stop
+
+----------------------------------------------------------------OK 
+
+-----------------VAMOS CADASTRAR NOVO PERFIL-----------------------------------------ATENÇÂO AQUI
+PODERIA DIVIDR A view...CRIAMOS UM DIRETORIO ..Partials\form.dlade.php E LEVAVA TUDO EM 
+EM COMUM PARA LA , PRINCIPALMEnTE O FORM DE INSERÇÂO E CHAMARIA PELO @include
+ONDE DESEJAR.........VOU FAZER A PAGINA (view) COMPLETO..... NAO VOU PARTIAR
+
+----CRIAMOS NOSSA View...Admin\pages\profiles\create.blade,php
+@extends('adminlte::page')
+
+@section('title', 'Cadastrando Novo Perfil')
+
+@section('content_header')
+<h1>Cadastrando Novo Perfil  </h1>
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            <div class="card-body">
+            <form action="{{route('profiles.store')}}" class="form" method="POST" >
+@csrf
+@include('admin.includes.alerts')
+<div class=form-group>
+    <label>NOME</label>
+<input class="form-control" type="text" name="name" placeholder="name" value=" {{$profile->name ?? old('name')}} ">
+</div>
+<div class=form-group>
+<label>DESCRIÇÃO</label>
+<input type="text" class="form-control" name="description" placeholder="description" value="{{$profile->description ?? old('description')}} ">
+</div>
+<div class=form-group>
+<button type="submit" class="btn btn-success">Enviar</button>
+</div>
+</form>
+
+            </div>
+            </div>
+
+
+@endsection    
+
+-------------------VAMOS NO PROFILESCONTROLLER E EXIBIMOS NOSSA VIEW CODIFICANDO O METODO create 
+public function create()
+    {
+        return view('admin.pages.profiles.create');
+    }
+
+---E NO METODO STORE 9que faz o cadastro em si) PEGAR_MOS NOSSO REPOSITORIO DE DADOS E
+REDIRECIONAR PARA view DE LISTAGEM
+ //  public function store(StoreUpdateProfile $request)
+   public function store(Request $request)
+    {
+        $this->repository->create($request->all());
+
+        return redirect()->route('profiles.index');
+    }
+
+ ------ E AGORA VAMOS NA MODEL PROFILES E LIBERAMOS OS CAMPOS QUE PODEM RECEBER INSERÇÂO   (fillable)
+ class Profile extends Model
+{
+    protected $fillable = ['name',  'description'];
+}
+
+------------------------------------------------------------------------------OK PERFEITO Cadastrando
+
+--------------------EDITAR PERFIM--------------------------------
+VAMOS CRIAR A view EDITAR
+@extends('adminlte::page')
+
+@section('title', "EDITANDO Perfis {$profile->name}")
+
+@section('content_header')
+<h1>EDITANDO Perfis {{$profile->name}}  </h1>
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            <div class="card-body">
+            <form action="{{route('profiles.update', $profile->id)}}" class="form" method="POST" >
+@csrf
+@method('PUT')
+
+
+<div class=form-group>
+    <label>NOME</label>
+<input class="form-control" type="text" name="name" placeholder="name" value="{{$profile->name}}">
+</div>
+<div class=form-group>
+<label>DESCRIÇÃO</label>
+<input type="text" class="form-control" name="description" placeholder="description" value="{{$profile->description}}">
+</div>
+<div class=form-group>
+<button type="submit" class="btn btn-success">Enviar</button>
+</div>
+</form>
+
+            </div>
+            </div>
+
+
+@endsection        
+
+---VAMOS EM PROFILESCONTROLLER E CODIFICAR O METODO EDIT 
+RECUPARA OS DADOS PELO ID , E FAZ UM CONDICIONAL, SE NAO ENCONTRAR REDIRECT E SE 
+ENCONTRAR RETORNA A VIEW EDIT PASSADNDO AVARIAVEL $profile PEMO METODO compact()
+ public function edit($id)
+    {
+        if (!$profile = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.profiles.edit', compact('profile'));
+    }
+
+
+-----E METODO update QUE VAI EFETIVAMENTE EDIT CODIFICAMOS, RECEBE OS DADOS PELO id 
+E FAZ O UPDATE DE TODOS PELO $Request()->ALL E MANDA PARA LISTAGEM
+ //public function update(StoreUpdateProfile $request, $id)
+    public function update(Request $request, $id)
+    {
+        if (!$profile = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $profile->update($request->all());
+
+        return redirect()->route('profiles.index');
+    }
+
+---------------------------------------------------------------OK PERFEITO, EDITOU (lembrando que nao 
+estamos listando a descrição na listagem, mas esta no BD)
+
+----VAMOS CRIAR A VALIDAÇÂO PARA RESTRINGIR---------------------------
+
+PARA ISSO VAMOS CRIAR UM REQUEST E A CLASSE VAI SER StoreUpdateProfile
+
+# php artisan make:request StoreUpdateProfile
+
+E CODIFICAMOS EM HTPP\REquests -- VALIDAR NORMAL MAS COMO VAMOS RECUPERAR PELO iD , EL VAI PENSAR QUE AQUELE REGISTRO JA EXISTE
+ENTAO CRIAMOS UMA EXCESSAO, PEGANDO O SEGNEMTO DA url (id)
+public function authorize()
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        $id = $this->segment(3);
+
+        return [
+            'name' => "required|min:3|max:255|unique:profiles,name,{$id},id",
+            'description' => 'nullable|min:3|max:255',
+        ];
+    }
+}
+
+
+----------AGORA VAMOS EM ProfileController e IMPOSTAMOS A CLASSE  StoreUpdateProfile NO INICIO
+use App\Http\Requests\StoreUpdateProfile; E SUBSTITUIMOS Request por StoreUpdateProfile No PROFILECONTROLLER
+PRINCIPALMENTE NO METODO store E Updade
+
+
+ public function store(StoreUpdateProfile $request)
+    //public function store(Request $request)
+
+public function update(StoreUpdateProfile $request, $id)
+    //public function update(Request $request, $id)
+--------------------------------------------------------------------------------ok PERFEITO JA VALIDANDO
+
+---------------------DELETAR UM PERFIL ------------------------------------
+NAO ESTAMOS NOS PREOCUPANDO COM Router POIS DECLARAMOS resource
+-----VAMOS CRIAR UMA VIew SHOW...(exibir o perfil ou os dados do pperfil capturado)
+
+@extends('adminlte::page')
+
+@section('title', "DETALHE DO Perfis  {$profile->name} ")
+
+@section('content_header')
+<h1>Detalhe do profileO <b>{{ $profile->name }}</b>  </h1>
+
+@stop
+
+@section('content')
+
+            <div class="card">
+            <div class="card-body">
+            <ul>
+            <li>
+            <strong>NOME</strong> {{ $profile->name }}
+            </li>
+            <li>
+            <strong>DESCRIÇÂO</strong> {{ $profile->description }}
+            </li>
+            
+            </ul>
+            @include ('admin\includes\alerts')
+                <form action=" {{ route('profiles.destroy', $profile->id) }}"  method="POST"  >
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i>DELETAR O PERFIL {{ $profile->name }}</button>
+
+                
+                </form>
+
+            </div>
+            </div>
+            @endsection
+
+----------------VAMOS NO PROFILE CONTROLE E NO METDO Show RECUPERAMOS OS DADOS PELO id E PASSAMOS O PERFIL(profile)
+PELO METODO conpact() PARA A view SHOW (exibição=separação)
+public function show($id)
+    {
+        if (!$profile = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.profiles.show', compact('profile'));
+    }
+
+----E NO METODO DETROY RECUOERAMOS ESSE DADO E DELETAMOS, E DEPOIS VOLTAMOS PARA vIEW DE LISTAGEM (index)
+public function destroy($id)
+    {
+        if (!$profile = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $profile->delete();
+
+        return redirect()->route('profiles.index');
+    }
+
+-----AQUI DELETAMOS SEM NENHUMA PERGUNTA OU QUESTIONAMNETO, IMPORTANTE ATENTA QUE NA view ShoW NO FORMULARIO
+O BOTAO NOS DIRECIONA PARA O METODO DETROY    
+------------------------------------------------------------------------OK PERFEITO EXIBINDO E DELETANDO 
+
+--------------PESQUISA-------------------------------------FICOU PERFEITA
+-----CRIAR ROUTER search DO TIPO any()EM router\Web.php E COLOCAR ANTES (acima) DA router resource
+
+Route::any('profiles/search', 'ACL\ProfileController@search')->name('profiles.search');       
+
+-----CRIAR  (implementar) METODO search EM PROFILESCONTROLLER
+ public function search(Request $request)
+    {
+        $filters = $request->only('filter');
+
+        $profiles = $this->repository
+                            ->where(function($query) use ($request) {
+                                if ($request->filter) {
+                                    $query->where('name', $request->filter);
+                                    $query->orWhere('description', 'LIKE', "%{$request->filter}%");
+                                }
+                            })
+                            ->paginate();
+
+        return view('admin.pages.profiles.index', compact('profiles', 'filters'));
+    }
+
+
+-----VAMOS COLOCAR (implementar) UM FORMULARIO DE PESQUISA NA View INDEX PROFILE que ainda nao EXISTE
+FICA ASSIM A view INDEX
+@extends('adminlte::page')
+
+@section('title', 'perfis')
+
+@section('content_header')
+
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{route('admin.index')}} ">Dashboard</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('profiles.index')}}" >Perfis</a></li>
+     </ol>
+</nav>
+
+<h1>Perfis <a href="{{route('profiles.create')}}" class="btn btn-dark"><i class="far fa-plus-square"></i></a></h1>
+
+@stop
+
+@section('content')
+   
+<div class="card">
+            <div class="card-header">
+        
+        <form action="{{ route('profiles.search') }}" method="POST" class="form form-inline">
+                @csrf
+                <input type="text" name="filter" placeholder="Filtro" class="form-control" value="{{ $filters['filter'] ?? '' }}">
+                <button type="submit" class="btn btn-dark">Filtrar</button>
+            </form>
+
+
+                </div>
+            
+        <div class="card-body">
+
+        @include ('admin\includes\alerts')
+
+        <table class="table table-condensed">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th style="width: 50px">Ação</th>
+
+                </tr>
+
+            </thead>
+            <body>
+                @foreach($profiles as $profile)
+                 <tr>
+                    <td>{{ $profile->name }}</td>
+                    
+                    <td style="width: 250px;">
+                    <a href="{{ route('profiles.edit',  $profile->id) }}" class="btn btn-warning">EDITAR</a>
+                    <a href="{{ route('profiles.show',  $profile->id) }}" class="btn btn-warning">VER</a>
+                    </td>
+                    </tr>
+                @endforeach
+            </body>
+        </table>
+       
+    
+                </div>
+            </div>
+
+            <div class="card-footer">
+
+                @if (isset ($filters)) 
+                {!! $profiles->appends($filters)->links() !!}
+                @else
+                 {!! $profiles->links() !!}
+                @endif
+
+               
+            </div>
+
+@stop
+
+
+-----FICA ASSIM NOSSO PROFILECONTROLLER
+<?php
+
+namespace App\Http\Controllers\Admin\ACL;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUpdateProfile;
+use App\Models\Profile;
+use Illuminate\Http\Request;
+
+class ProfileController extends Controller
+{
+    protected $repository;
+
+    public function __construct(Profile $profile)
+    {
+        $this->repository = $profile;
+
+        // $this->middleware(['can:profiles']);
+    }
+
+   
+    public function index()
+    {
+        $profiles = $this->repository->paginate();
+
+        return view('admin.pages.profiles.index', compact('profiles'));
+    }
+
+  
+    public function create()
+    {
+        return view('admin.pages.profiles.create');
+    }
+
+      
+
+    public function store(StoreUpdateProfile $request)
+    //public function store(Request $request)
+    {
+        $this->repository->create($request->all());
+
+        return redirect()->route('profiles.index');
+    }
+
+    
+    public function show($id)
+    {
+        if (!$profile = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.profiles.show', compact('profile'));
+    }
+
+   
+    public function edit($id)
+    {
+        if (!$profile = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.profiles.edit', compact('profile'));
+    }
+
+   
+    public function update(StoreUpdateProfile $request, $id)
+    //public function update(Request $request, $id)
+    {
+        if (!$profile = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $profile->update($request->all());
+
+        return redirect()->route('profiles.index');
+    }
+
+   
+    public function destroy($id)
+    {
+        if (!$profile = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $profile->delete();
+
+        return redirect()->route('profiles.index');
+    }
+
+     
+    
+    public function search(Request $request)
+    {
+        $filters = $request->only('filter');
+
+        $profiles = $this->repository
+                            ->where(function($query) use ($request) {
+                                if ($request->filter) {
+                                    $query->where('name', $request->filter);
+                                    $query->orWhere('description', 'LIKE', "%{$request->filter}%");
+                                }
+                            })
+                            ->paginate();
+
+        return view('admin.pages.profiles.index', compact('profiles', 'filters'));
+    }
+
+}
+
+-----------------------------------------------------------------
+5-----------PERMISSÕES---------------------------------------
+ # php artisan make:model Models\Permission  -m  --------------------------------USEI ESSA 
+CRIOU A MODEL permissionS E A MIGRATION permissionS DENTRO DE MODELS
+VAMOS EM NIGATTION permissionS e DEFININOS AS COLUNAS DE NOSSA TABELA
+public function up()
+    {
+        Schema::create('permissions', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->string('name')->unique();
+            $table->string('description')->nullable();
+            $table->timestamps();
+        });
+    }
+
+ ------------------------------------------------------
+ E NA MODELS permissionS DEFININOS NOSSO fillable (permisao de dados no BD)
+ class Permission extends Model
+{
+    protected $fillable = ['name',  'description'];
+}   
+
+---------------------CRIAR A TABELA----------------------------------
+# php artisan migrate                              USEI ESSA
+# php artisan make:migration create_permissions_table
+
+-----VAMOS NO ARQUIVO BOOTSTRAO\CONFIG\adminlte.php E CONFIGURA A DASHBOARD
+ACHAR ICON EM https://fontawesome.com/icons?d=gallery
+'menu' => [
+                   
+        [
+            'text' => 'Planos',
+            'url'  => 'admin/plans',
+            'icon' =>'fas fa-list-ol'
+        ],
+        [
+            'text'        => 'Perfis',
+            'url'         => 'admin/permissions',
+            'icon'        => 'fas fa-address-book',
+           
+        ],
+
+---------------------  FAZER LISTAGEM DOS PERFIS (metodo index)---------------------
+
+-----PRIMEIRAMENTE COMEÇAMOS COM AS ROTAS DOS PERFIS EM WEB.PHP  E VAMOS FAZER PELO METODO resource e search--------------------
+ /* ROTA DAS PERMISSÕES 
+            */
+            Route::any('permissions/search', 'ACL\PermissionController@search')->name('permissions.search');        
+            Route::resource('permissions', 'ACL\PermissionController');
+
+
+---------LOGO EM SEGUIDA CRIAMOS OS CONTROLLER QUE VAI FICAR EM Admin\ACL
+# php artisan make:controller Admin\ACL\PermissionController
+
+TEMOS QUE CONFERIR A CLASSE use App\Models\Permission;
+
+
+---FAZEMOS O CONSTRUCTOR INICIALMENTE 
+class PermissionController extends Controller
+{
+    //
+    protected $repository;
+
+    public function __construct(Permission $permission)
+    {
+        $this->repository = $permission;
+
+       // $this->middleware(['can:permissions']);
+    }
+---------E PARA LISTAR NO METODO INDEX ARMAZENAOS O REULSTADO EM UMA VAIAVEL $permission
+E ENCAMINHA A VARIAVEL QUE ESTA COM O REPOSITORIO PARA A view index
+public function index()
+    {
+        $permissions = $this->repository->paginate();
+
+        return view('admin.pages.permissions.index', compact('permissions'));
+    }
+
+-----VAMOS CRIAR NOSSA view EM Admin\pages\permissions\index.blade.php
+
+@extends('adminlte::page')
+
+@section('title', 'Permissões')
+
+@section('content_header')
+
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{route('admin.index')}} ">Dashboard</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('permissions.index')}}" >Perfis</a></li>
+     </ol>
+</nav>
+
+<h1>Permissões <a href="{{route('permissions.create')}}" class="btn btn-dark">ADD</i></a></h1>
+
+@stop
+
+@section('content')
+   
+<div class="card">
+            <div class="card-header">
+            <form action="{{ route('permissions.search') }}" method="POST" class="form form-inline">
+                @csrf
+                <input type="text" name="filter" placeholder="Filtro" class="form-control" value="{{ $filters['filter'] ?? '' }}">
+                <button type="submit" class="btn btn-dark"><i class="fas fa-search"></i></button>
+            </form>
+                </div>
+            
+        <div class="card-body">
+
+        @include ('admin\includes\alerts')
+
+        <table class="table table-condensed">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th style="width: 50px">Ação</th>
+
+                </tr>
+
+            </thead>
+            <body>
+                @foreach($permissions as $permission)
+                 <tr>
+                    <td>{{ $permission->name }}</td>
+                    
+                    <td style="width: 150px;">
+                    <a href="{{ route('permissions.edit',  $permission->id) }}" class="btn btn-warning"><i class="fas fa-edit"></i></a>
+                    <a href="{{ route('permissions.show',  $permission->id) }}" class="btn btn-warning"><i class="fas fa-filter"></i></a>
+                    </td>
+                    </tr>
+                @endforeach
+            </body>
+        </table>
+       
+    
+                </div>
+            </div>
+
+            <div class="card-footer">
+
+                @if (isset ($filters)) 
+                {!! $permissions->appends($filters)->links() !!}
+                @else
+                 {!! $permissions->links() !!}
+                @endif
+
+               
+            </div>
+
+@stop
+
+----------------------------------------------------------------OK 
+
+-----------------VAMOS CADASTRAR NOVO PERMISSÂO-----------------------------------------ATENÇÂO AQUI
+PODERIA DIVIDR A view...CRIAMOS UM DIRETORIO ..Partials\form.blade.php E LEVAVA TUDO EM 
+EM COMUM PARA LA , PRINCIPALMEnTE O FORM DE INSERÇÂO E CHAMARIA PELO @include
+ONDE DESEJAR.........VOU FAZER A PAGINA (view) COMPLETO..... NAO VOU PARTIAR
+
+----CRIAMOS NOSSA View...Admin\pages\permissions\create.blade,php
+@extends('adminlte::page')
+
+@section('title', 'Cadastrando Novo Perfil')
+
+@section('content_header')
+<h1>Cadastrando Novo Perfil  </h1>
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            <div class="card-body">
+            <form action="{{route('permissions.store')}}" class="form" method="POST" >
+@csrf
+@include('admin.includes.alerts')
+<div class=form-group>
+    <label>NOME</label>
+<input class="form-control" type="text" name="name" placeholder="name" value=" {{$permission->name ?? old('name')}} ">
+</div>
+<div class=form-group>
+<label>DESCRIÇÃO</label>
+<input type="text" class="form-control" name="description" placeholder="description" value="{{$permission->description ?? old('description')}} ">
+</div>
+<div class=form-group>
+<button type="submit" class="btn btn-success">Enviar</button>
+</div>
+</form>
+
+            </div>
+            </div>
+
+
+@endsection    
+
+-------------------VAMOS NO permissionSCONTROLLER E EXIBIMOS NOSSA VIEW CODIFICANDO O METODO create 
+public function create()
+    {
+        return view('admin.pages.permissions.create');
+    }
+
+---E NO METODO STORE que faz o cadastro em si) PEGAR_MOS NOSSO REPOSITORIO DE DADOS E
+REDIRECIONAR PARA view DE LISTAGEM
+ //  public function store(StoreUpdatepermission $request)
+   public function store(Request $request)
+    {
+        $this->repository->create($request->all());
+
+        return redirect()->route('permissions.index');
+    }
+
+ ------ E AGORA VAMOS NA MODEL permissionS E LIBERAMOS OS CAMPOS QUE PODEM RECEBER INSERÇÂO   (fillable)
+ class permission extends Model
+{
+    protected $fillable = ['name',  'description'];
+}
+
+------------------------------------------------------------------------------OK PERFEITO Cadastrando
+
+--------------------EDITAR PERFIM--------------------------------
+VAMOS CRIAR A view EDITAR
+@extends('adminlte::page')
+
+@section('title', "EDITANDO A PERMISÃO {$permission->name}")
+
+@section('content_header')
+<h1>EDITANDO PERMISÃO {{$permission->name}}  </h1>
+
+@stop
+
+@section('content')
+   
+            <div class="card">
+            <div class="card-body">
+            <form action="{{route('permissions.update', $permission->id)}}" class="form" method="POST" >
+@csrf
+@method('PUT')
+
+
+<div class=form-group>
+    <label>NOME</label>
+<input class="form-control" type="text" name="name" placeholder="name" value="{{$permission->name}}">
+</div>
+<div class=form-group>
+<label>DESCRIÇÃO</label>
+<input type="text" class="form-control" name="description" placeholder="description" value="{{$permission->description}}">
+</div>
+<div class=form-group>
+<button type="submit" class="btn btn-success">Enviar</button>
+</div>
+</form>
+
+            </div>
+            </div>
+
+
+@endsection        
+
+------------------------------------------------------------------------------
+
+---VAMOS EM permissionSCONTROLLER E CODIFICAR O METODO EDIT 
+RECUPARA OS DADOS PELO ID , E FAZ UM CONDICIONAL, SE NAO ENCONTRAR REDIRECT E SE 
+ENCONTRAR RETORNA A VIEW EDIT PASSADNDO AVARIAVEL $permission PEMO METODO compact()
+ public function edit($id)
+    {
+        if (!$permission = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.permissions.edit', compact('permission'));
+    }
+
+
+-----E NO METODO update QUE VAI EFETIVAMENTE EDIT CODIFICAMOS, RECEBE OS DADOS PELO id 
+E FAZ O UPDATE DE TODOS PELO $Request()->ALL E MANDA PARA LISTAGEM
+ //public function update(StoreUpdatepermission $request, $id)  //AQUI È NA VALIDAÇÂO
+    public function update(Request $request, $id)
+    {
+        if (!$permission = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $permission->update($request->all());
+
+        return redirect()->route('permissions.index');
+    }
+
+---------------------------------------------------------------OK PERFEITO, EDITOU (lembrando que nao 
+estamos listando a descrição na listagem, mas esta no BD)
+
+----VAMOS CRIAR A VALIDAÇÂO PARA RESTRINGIR---------------------------
+
+PARA ISSO VAMOS CRIAR UM REQUEST E A CLASSE VAI SER StoreUpdatepermission
+
+# php artisan make:request StoreUpdatePermission
+
+E CODIFICAMOS EM HTPP\REquests -- VALIDAR NORMAL MAS COMO VAMOS RECUPERAR PELO iD , EL VAI PENSAR QUE AQUELE REGISTRO JA EXISTE
+ENTAO CRIAMOS UMA EXCESSAO, PEGANDO O SEGNEMTO DA url (id)
+EXEMPLO: MO ENDEREÇO http://127.0.0.1:8000/admin/permissions/2/edit ----O numero 2 (id)é o terceiro segmento
+public function authorize()
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        $id = $this->segment(3);
+
+        return [
+            'name' => "required|min:3|max:255|unique:permissions,name,{$id},id",
+            'description' => 'nullable|min:3|max:255',
+        ];
+    }
+}
+
+
+----------AGORA VAMOS EM permissionController e IMPOSTAMOS A CLASSE  StoreUpdatepermission NO INICIO
+use App\Http\Requests\StoreUpdatepermission; E SUBSTITUIMOS Request por StoreUpdatepermission No permissionCONTROLLER
+PRINCIPALMENTE NO METODO store E Updade
+
+
+ public function store(StoreUpdatePermission $request)
+    //public function store(Request $request)
+
+public function update(StoreUpdatePermission $request, $id)
+    //public function update(Request $request, $id)
+--------------------------------------------------------------------------------ok PERFEITO JA VALIDANDO
+
+---------------------DELETAR UM PERFIL ------------------------------------
+NAO ESTAMOS NOS PREOCUPANDO COM Router POIS DECLARAMOS resource
+-----VAMOS CRIAR UMA VIew SHOW...(exibir o perfil ou os dados do pperfil capturado)
+
+@extends('adminlte::page')
+
+@section('title', "DETALHE DO Perfis  {$permission->name} ")
+
+@section('content_header')
+<h1>Detalhe do permissionO <b>{{ $permission->name }}</b>  </h1>
+
+@stop
+
+@section('content')
+
+            <div class="card">
+            <div class="card-body">
+            <ul>
+            <li>
+            <strong>NOME</strong> {{ $permission->name }}
+            </li>
+            <li>
+            <strong>DESCRIÇÂO</strong> {{ $permission->description }}
+            </li>
+            
+            </ul>
+            @include ('admin\includes\alerts')
+                <form action=" {{ route('permissions.destroy', $permission->id) }}"  method="POST"  >
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i>DELETAR O PERFIL {{ $permission->name }}</button>
+
+                
+                </form>
+
+            </div>
+            </div>
+            @endsection
+
+----------------VAMOS NO permissionCONTROLE E NO METDO Show RECUPERAMOS OS DADOS PELO id E PASSAMOS O PERFIL(permission)
+PELO METODO conpact() PARA A view SHOW (exibição=separação)
+public function show($id)
+    {
+        if (!$permission = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.permissions.show', compact('permission'));
+    }
+
+----E NO METODO DETROY RECUPERAMOS ESSE DADO E DELETAMOS, E DEPOIS VOLTAMOS PARA vIEW DE LISTAGEM (index)
+public function destroy($id)
+    {
+        if (!$permission = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $permission->delete();
+
+        return redirect()->route('permissions.index');
+    }
+
+-----AQUI DELETAMOS SEM NENHUMA PERGUNTA OU QUESTIONAMNETO, IMPORTANTE ATENTA QUE NA view ShoW NO FORMULARIO
+O BOTAO NOS DIRECIONA PARA O METODO DETROY    
+------------------------------------------------------------------------OK PERFEITO EXIBINDO E DELETANDO 
+   
+  --------------PESQUISA-------------------------------------FICOU PERFEITA
+-----CRIAR ROUTER search DO TIPO any()EM router\Web.php E COLOCAR ANTES (acima) DA router resource
+
+Route::any('permissions/search', 'ACL\PermissionController@search')->name('permissions.search');       
+
+-----CRIAR  (implementar) METODO search EM PermissionSCONTROLLER
+ public function search(Request $request)
+    {
+        $filters = $request->only('filter');
+
+        $permissions = $this->repository
+                            ->where(function($query) use ($request) {
+                                if ($request->filter) {
+                                    $query->where('name', $request->filter);
+                                    $query->orWhere('description', 'LIKE', "%{$request->filter}%");
+                                }
+                            })
+                            ->paginate();
+
+        return view('admin.pages.permissions.index', compact('permissions', 'filters'));
+    }
+
+
+-----VAMOS COLOCAR (implementar) UM FORMULARIO DE PESQUISA NA View INDEX Permission que ainda nao EXISTE  --JA TEM----OK PERFEITO
+FICA ASSIM A view INDEX
+@extends('adminlte::page')
+
+@section('title', 'perfis')
+
+@section('content_header')
+
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{route('admin.index')}} ">Dashboard</a></li>
+    <li class="breadcrumb-item" aria-current="page"><a href="{{route('permissions.index')}}" >Perfis</a></li>
+     </ol>
+</nav>
+
+<h1>Perfis <a href="{{route('permissions.create')}}" class="btn btn-dark"><i class="far fa-plus-square"></i></a></h1>
+
+@stop
+
+@section('content')
+   
+<div class="card">
+            <div class="card-header">
+        
+        <form action="{{ route('permissions.search') }}" method="POST" class="form form-inline">
+                @csrf
+                <input type="text" name="filter" placeholder="Filtro" class="form-control" value="{{ $filters['filter'] ?? '' }}">
+                <button type="submit" class="btn btn-dark">Filtrar</button>
+            </form>
+
+
+                </div>
+            
+        <div class="card-body">
+
+        @include ('admin\includes\alerts')
+
+        <table class="table table-condensed">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th style="width: 50px">Ação</th>
+
+                </tr>
+
+            </thead>
+            <body>
+                @foreach($permissions as $permission)
+                 <tr>
+                    <td>{{ $permission->name }}</td>
+                    
+                    <td style="width: 250px;">
+                    <a href="{{ route('permissions.edit',  $permission->id) }}" class="btn btn-warning">EDITAR</a>
+                    <a href="{{ route('permissions.show',  $permission->id) }}" class="btn btn-warning">VER</a>
+                    </td>
+                    </tr>
+                @endforeach
+            </body>
+        </table>
+       
+    
+                </div>
+            </div>
+
+            <div class="card-footer">
+
+                @if (isset ($filters)) 
+                {!! $permissions->appends($filters)->links() !!}
+                @else
+                 {!! $permissions->links() !!}
+                @endif
+
+               
+            </div>
+
+@stop
+
+
+-----FICA ASSIM NOSSO PermissionCONTROLLER
+<?php
+
+namespace App\Http\Controllers\Admin\ACL;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUpdatePermission;
+use App\Models\Permission;
+use Illuminate\Http\Request;
+
+class PermissionController extends Controller
+{
+    protected $repository;
+
+    public function __construct(Permission $permission)
+    {
+        $this->repository = $permission;
+
+        // $this->middleware(['can:permissions']);
+    }
+
+   
+    public function index()
+    {
+        $permissions = $this->repository->paginate();
+
+        return view('admin.pages.permissions.index', compact('permissions'));
+    }
+
+  
+    public function create()
+    {
+        return view('admin.pages.permissions.create');
+    }
+
+      
+
+    public function store(StoreUpdatePermission $request)
+    //public function store(Request $request)
+    {
+        $this->repository->create($request->all());
+
+        return redirect()->route('permissions.index');
+    }
+
+    
+    public function show($id)
+    {
+        if (!$permission = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.permissions.show', compact('permission'));
+    }
+
+   
+    public function edit($id)
+    {
+        if (!$permission = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.permissions.edit', compact('permission'));
+    }
+
+   
+    public function update(StoreUpdatePermission $request, $id)
+    //public function update(Request $request, $id)
+    {
+        if (!$permission = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $permission->update($request->all());
+
+        return redirect()->route('permissions.index');
+    }
+
+   
+    public function destroy($id)
+    {
+        if (!$permission = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $permission->delete();
+
+        return redirect()->route('permissions.index');
+    }
+
+     
+    
+    public function search(Request $request)
+    {
+        $filters = $request->only('filter');
+
+        $permissions = $this->repository
+                            ->where(function($query) use ($request) {
+                                if ($request->filter) {
+                                    $query->where('name', $request->filter);
+                                    $query->orWhere('description', 'LIKE', "%{$request->filter}%");
+                                }
+                            })
+                            ->paginate();
+
+        return view('admin.pages.permissions.index', compact('permissions', 'filters'));
+    }
+
+}
+
+----------------------------------------------------------------- FUNCIONANDO, mas o LIKE NAO ESTA PEGANDO
+
+6-----  RELACIOMAMENTO PERMISSÕES X Perfil-------------------------------------
+
+VAMOS FAZER UMA TABELA PIVO, MAS PODE SER FEITO O RALCIONAMNETO NA PROPIA MIGRATION
+NO NOSSO CASO VAMOS FAZER SEPARADO  E VAI SER UM REL N:N (um perfilpode ter varias permissões e vice-verso)
+
+-------COMO VAI SER SEPARADA , ENTAO VAMOS CRIAR UM NOVA MIGRATION
+
+# php artisan make:migration create_permission_profile_table
+
+---------------- E CODIFICAR A MIGRATION permission_profile COM AS CHAVES ESTRANGEIRA PELO iD DAS TABELAS permissions e profiles
+que ja temos no BD
+public function up()
+    {
+        Schema::create('permission_profile', function (Blueprint $table) {
+             $table->bigIncrements('id');
+            $table->unsignedBigInteger('permission_id');
+            $table->unsignedBigInteger('profile_id');
+
+            $table->foreign('permission_id')
+                        ->references('id')
+                        ->on('permissions')
+                        ->onDelete('cascade');
+            $table->foreign('profile_id')
+                        ->references('id')
+                        ->on('profiles')
+                        ->onDelete('cascade');
+        });
+
+------------ RODAR MIGRATE PARA FAZER A TABELA PIVÓ NO BD
+
+# php artisan migrate
+
+-------------------------------------OK PERFEITO 
+
+---------------------CRIAR ROTA (profiles.permissions)
+ /* ROTA DAS PERMISSÕES X PERFIL 
+            */
+
+            Route::get('profiles/{id}/permissions', 'ACL\PermissionProfileController')->name('profiles.permissions');   
+
+
+----PROXIMO PASSO COLOCAR UM BOTAO NA NOSSA VIEW Admin\pages\profiles\index.blade.php
+@foreach($profiles as $profile)
+                 <tr>
+                    <td>{{ $profile->name }}</td>
+                    
+                    <td style="width: 250px;">
+                    <a href="{{ route('profiles.edit',  $profile->id) }}" class="btn btn-warning">EDITAR</a>
+                    <a href="{{ route('profiles.show',  $profile->id) }}" class="btn btn-warning">VER</a>
+                    <a href="{{ route('profiles.permissions',  $profile->id) }}" class="btn btn-warning"><i class="fas fa-unlock-alt"></i></a>
+                    </td>
+                    </tr>
+                @endforeach
+            </body>
+
+----------- E ENTAO VAMOS CRIAR NOSSO CONTROLLER (PermissionProfileController)           
+
+# php artisan make:controller Admin\ACL\PermissionProfileController
+
+OBS: SE DER UM ERRO (e vai dar ) È PQ JA TEMOS A ROTA DECLARADA, BOM COMETAR ELA PARA RODAR O make:controller FAREMOS ISSO EM
+router\web.php
+
+// Route::get('profiles/{id}/permissions', 'ACL\PermissionProfileController')->name('profiles.permissions')
+
+------IR NA MODElS\Profile e LIBERAR RELACIONAMENTO 
+// RELACIONAMENTO DAS PERMISSÔES - ESSA SER AS PERMISSOES POSSIVEL NUM PERFIL
+ public function permissions() {
+    return $this->belongsToMany(permission::class);
+}   
+
+----FAÇO O MESMO PARA MODELS\Permission
+// RELACIONAMENTO DOS PERFIS - ESSss são os PERFIS POSSIVEL NUMA PERMISSÂO
+    public function profiles() {
+    return $this->belongsToMany(profile::class);
+}   
+
+
+
+---PRONTO JA ESTAMOS COM A PermissionProfileController CRIADO VAMOS CODIFICAR (nao esquecer de decometar a router)
+---ESSA CODIFICAÃO VAI SER BEM DIFERENTE DO OUTROS CONTROLLER
+---COMO SEMPRE VAMOS COMEÇAR PELO CONSTRUCT CO DUAS VARIAVEIS ($profile, $prermission)
+ protected $profile, $permission;
+
+    public function __construct(Profile $profile, Permission $permission)
+    {
+        $this->profile = $profile;
+        $this->permission = $permission;
+
+       //  $this->middleware(['can:profiles']);
+    }
+
+---E VAMOS FAZER É LISTAR AS PERMISSÕES DE UM PERFIL ----RECUPERANDO NOSSOS profile PELO id   EM UMA Function 
+ public function permissions($idProfile)
+    {
+        $profile = $this->profile->find($idProfile);
+
+        if (!$profile) {
+            return redirect()->back();
+        }
+
+        $permissions = $profile->permissions()->paginate();
+
+        return view('admin.pages.profiles.permissions.permissions', compact('profile', 'permissions'));
+    }
+
+------------- VANOS FAZER A view de LISTAGEM DAS PERMISSÕES DE UM PERFIL    admin.pages.profiles.permissions.permissions
+@extends('adminlte::page')
+
+@section('title', "Permissões do perfil {$profile->name}")
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('profiles.index') }}" class="active">Perfis</a></li>
+    </ol>
+
+    <h1>Permissões do perfil <strong>{{ $profile->name }}</strong></h1>
+
+    <a href="{{ route('profiles.permissions.available', $profile->id) }}" class="btn btn-dark">ADD NOVA PERMISSÃO</a>
+
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th width="50">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($permissions as $permission)
+                        <tr>
+                            <td>
+                                {{ $permission->name }}
+                            </td>
+                           
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $permissions->appends($filters)->links() !!}
+            @else
+                {!! $permissions->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+
+-----------------------------------OK   LISTAGEM DAS PERMISSÕES DE UM PERFIL    VAI MUDAR
+
+
+------- Vincular Permissões ao Perfil - PRIMEIRAMENTE VAMOS LISTAR TODAS AS PERMISSÕES PARA DEPOIS ESCOLHER A PERMISSÂO 
+-----VAMOS CRIAR UA ROTA 
+/* ROTA DAS PERMISSÕES X PERFIL 
+            */
+           Route::get('profiles/{id}/permissions/create', 'ACL\PermissionProfileController@permissionsAvailable')->name('profiles.permissions.available');  
+
+-----------------NA NOSSA VIER VAMOS NO LINK DE ADD NOVA PERMISSÃO E MUDAMOS A ROTA 'profiles.permissions.available'           
+                 <li class="breadcrumb-item" aria-current="page"><a href="{{route('permissions.index')}}" >Perfis</a></li>
+     </ol>
+</nav>
+
+<h1>Permissão do Perfil {{$profile->name}} <a href="{{'profiles.permissions.available'}}" class="btn btn-dark"><i class="far fa-plus-square"></i></a></h1>
+
+@stop
+
+
+----- NO NOSSO PermissionProfileController VAMOS CODIFICAR UM METODO COM O NOME permissionsAvailable
+POR ENQUANTO NAO VAMOS FILTRAR , VAMOS PEGAR TODOS com $this->permission->All(); ou paginate()
+p  public function permissionsAvailable(Request $request, $idProfile)
+    {
+        if (!$profile = $this->profile->find($idProfile)) {
+            return redirect()->back();
+        }
+
+      //  $filters = $request->except('_token');
+
+       //  $permissions = $profile->permissionsAvailable($request->filter);
+
+       //$permissions = $this->permission->All();
+       $permissions = $this->permission->paginate();
+
+        return view('admin.pages.profiles.permissions.available', compact('profile', 'permissions', 'filters'));
+    }
+-------------VAMOS CRIAR UMA view   admin.pages.profiles.permissions.available
+
+@extends('adminlte::page')
+
+@section('title', 'Permissões disponíveis perfil {$profile->name}')
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('profiles.index') }}" class="active">Perfis</a></li>
+    </ol>
+
+    <h1>Permissões disponíveis perfil <strong>{{ $profile->name }}</strong></h1>
+
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-header">
+            <form action="{{ route('profiles.permissions.available', $profile->id) }}" method="POST" class="form form-inline">
+                @csrf
+                <input type="text" name="filter" placeholder="Filtro" class="form-control" value="{{ $filters['filter'] ?? '' }}">
+                <button type="submit" class="btn btn-dark">Filtrar</button>
+            </form>
+        </div>
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th width="50px">#</th>
+                        <th>Nome</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <form action="{{ route('profiles.permissions.attach', $profile->id) }} "  method="POST">
+                        @csrf
+
+                        @foreach ($permissions as $permission)
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="permissions[]" value="{{ $permission->id }}">
+                                </td>
+                                <td>
+                                    {{ $permission->name }}
+                                </td>
+                            </tr>
+                        @endforeach
+
+                        <tr>
+                            <td colspan="500">
+                                @include('admin.includes.alerts')
+
+                                <button type="submit" class="btn btn-success">Vincular</button>
+                            </td>
+                        </tr>
+                    </form>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $permissions->appends($filters)->links() !!}
+            @else
+                {!! $permissions->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+
+-----------------------------------------------------ok SEGUINDO (colocar rota)
+
+-----------------VAMOS FAZER UM ROTA DE VINCULAÇÃO
+ Route::post('profiles/{id}/permissions', 'ACL\PermissionProfileController@attachPermissionsProfile')->name('profiles.permissions.attach');
+ Route::get('profiles/{id}/permissions/create', 'ACL\PermissionProfileController@permissionsAvailable')->name('profiles.permissions.available');  
+ Route::get('profiles/{id}/permissions', 'ACL\PermissionProfileController@permissions')->name('profiles.permissions');   
+
+--------------------E COLOCAR ESSA ROTA NO FORMULÁRIO PASSANDO o ID DO PROFILE ($profile->id)
+
+<form action="{{ route('profiles.permissions.attach', $profile->id) }} "  method="POST">
+                        @csrf
+
+                        @foreach ($permissions as $permission)
+
+---VAMOS NO PermissionProfileController E CODIFICAMOS O METODO attachPermissionsProfile
+SE NAO EXISTE O PERFIL redirecione e se existe apermisao e a quantiae é E IGUAL (checkbox) A ZERO MANDE UMA MENSAGEM DE ALERT
+E SE FOR maior que zero OU ATENDER AS CONDICÕES VINCULE E va para VIEW de listagem 
+public function attachPermissionsProfile(Request $request, $idProfile)
+    {
+        if (!$profile = $this->profile->find($idProfile)) {
+            return redirect()->back();
+        }
+
+        if (!$request->permissions || count($request->permissions) == 0) {
+            return redirect()
+                        ->back()
+                        ->with('info', 'Precisa escolher pelo menos uma permissão');
+        }
+
+        $profile->permissions()->attach($request->permissions);
+
+        return redirect()->route('profiles.permissions', $profile->id);
+    }
+
+ ----------------FUNCIONANDO MAIS AINDA PRECISA DE AJUSTES  ( QUANDO CKICK EM ADD ainda continua exibindo todos as PERMISSOES, quando era pra so exibir
+ as permissoes que nao estavam vinculadas ainda) ----------------------VAMOS AJUSTAR
+ 
+ --VAMOS PermissionProfileController EM NO METODO permissionsAvailable E EM VEZ DE PEGAR 
+ TODAS $permissions = $this->permission->paginate(); substituir por ummetofo de filtto
+ public function permissionsAvailable(Request $request, $idProfile)
+    {
+        if (!$profile = $this->profile->find($idProfile)) {
+            return redirect()->back();
+        }
+
+      //  $filters = $request->except('_token');
+
+        $permissions = $profile->permissionsAvailable($request->filter);
+
+       //$permissions = $this->permission->All();
+      //  $permissions = $this->permission->paginate();
+
+        return view('admin.pages.profiles.permissions.available', compact('profile', 'permissions', 'filters'));
+    }
+ 
+ANTES TEMOS QUE IR NA NOSSA MODEL profile.php E CRIAR O ME|TODO permissionsAvailable E RECEBER UM FILTER QUE VAMOS CRIAR 
+PermissionProfileController E SW NAO EXISTIR RETORNAR NULL
+/**
+     * Permission not linked with this profile
+     */
+
+public function permissionsAvailable($filter = null)
+    {
+        $permissions = Permission::whereNotIn('permissions.id', function($query) {
+            $query->select('permission_profile.permission_id');
+            $query->from('permission_profile');
+            $query->whereRaw("permission_profile.profile_id={$this->id}");
+        })
+        ->where(function ($queryFilter) use ($filter) {
+            if ($filter)
+                $queryFilter->where('permissions.name', 'LIKE', "%{$filter}%");
+        })
+        ->paginate();
+
+        return $permissions;
+    }
+
+------------------------------------------------------------------OK PERFEITO, VINCULANDO E EXIBIDO DOS 2 MODOS
+EXIBI INICIALMENTE OS QUE ESTAO VINCULADOS E AO ADD MODULO NAO EXIBI OS JA VINCULADOS
+
+
+-------Filtrar Permissões disponíveis no LaraFood (quando tivermos centenas de possibilidade de permissões)
+---PRIMEIRO PASSO CRIAR ROTA (nao conflita pois esta em tipo any)
+Route::any('profiles/{id}/permissions/create', 'ACL\PermissionProfileController@permissionsAvailable')->name('profiles.permissions.available');
+
+VAMOS EM View admin\pages\profiles\permissions\available E CONFERE ROTA DO FILTRO
+ <form action="{{ route('profiles.permissions.available', $profile->id) }}" method="POST" class="form form-inline">
+                @csrf
+                <input type="text" name="filter" placeholder="Filtro" class="form-control" value="{{ $filters['filter'] ?? '' }}">
+                <button type="submit" class="btn btn-dark">Filtrar</button>
+            </form>
+
+---VAMOS NO PermissionProfileController e vamos pasaar nosso requeste PARA RECEBERR OS DADOS DO FORMULARIO
+FAZ UM VARIAVEL FITRO E FITRAR O REQUEST COM EXCEÇÃO DO __TOKEN            
+public function permissionsAvailable(Request $request, $idProfile)
+    {
+        if (!$profile = $this->profile->find($idProfile)) {
+            return redirect()->back();
+        }
+
+       $filters = $request->except('_token');
+
+        $permissions = $profile->permissionsAvailable($request->filter);
+
+       //$permissions = $this->permission->All();
+      //  $permissions = $this->permission->paginate();
+
+        return view('admin.pages.profiles.permissions.available', compact('profile', 'permissions', 'filters'));
+    }
+
+----------------------------------------OK FILTER (filtrando=buscando perfil)
+----------AGORA VAMOS REMOVER A PERMISSÂO (Desvincular Permissão do Perfil)
+
+----CRIAR NOSSA ROTA (Ela espera dois id)
+Route::get('profiles/{id}/permission/{idPermission}/detach', 'ACL\PermissionProfileController@detachPermissionProfile')->name('profiles.permission.detach');
+
+----VAMOS NO PermissionProfileController e VAMOS FAZER O METODO detachPermissionProfile PARA Desvincular
+RECEBE OS DOIS iD-RECUPERA A PERMISSÂO E PERFIL PELO ID - SE ENCONTRAR OS DOIS - DESVINCULAR PELA PERMISSÃO - REDIRECIONAR
+ public function detachPermissionProfile($idProfile, $idPermission)
+    {
+        $profile = $this->profile->find($idProfile);
+        $permission = $this->permission->find($idPermission);
+
+        if (!$profile || !$permission) {
+            return redirect()->back();
+        }
+
+        $profile->permissions()->detach($permission);
+
+        return redirect()->route('profiles.permissions', $profile->id);
+    }
+
+
+---VAMOS NA NOSSA PAGINA DE LISTAGEM DAS PERMISÃO permission.blade.php   E MODIFICA (se ja não tiver)
+  <tbody>
+                    @foreach ($permissions as $permission)
+                        <tr>
+                            <td>
+                                {{ $permission->name }}
+                            </td>
+                            <td style="width=10px;">
+                                <a href="{{ route('profiles.permission.detach', [$profile->id, $permission->id]) }}" class="btn btn-danger">DESVINCULAR</a>
+                            </td>
+                        </tr>
+                    @endforeach
+
+-----------------------------   OK PERFEITO DESVINCULANDO
+
+-------------------Listar Perfis da Permissão -------------------------------
+A LOGICA AQUI È PARA VISUALIZAR O CONTRARIO QUAIS PERFIS ESTA ASSOCIADO AQUELA PERMISSÂO
+VAMOS RESOLVER COMLOCANDO UM BOTAO NA View DE LISTAGEM (admin\pages\permissions\index.blade.php) E CODIFICA A LOGICA
+ @foreach($permissions as $permission)
+                 <tr>
+                    <td>{{ $permission->name }}</td>
+                    
+                    <td style="width: 200px;">
+                    <a href="{{ route('permissions.edit',  $permission->id) }}" class="btn btn-warning" title="Edit" ><i class="fas fa-edit"></i></a>
+                    <a href="{{ route('permissions.show',  $permission->id) }}" class="btn btn-warning" title="Ver"><i class="fas fa-filter"></i></a>
+                    <a href="{{ route('permissions.show',  $permission->id) }}" class="btn btn-warning" title="Perfil Associado"><i class="ffas fa-address-book"></i></a>
+                </td>
+                    </tr>
+
+----CRIAR ROTA 
+Route::get('profiles/{id}/permission/{idPermission}/detach', 'ACL\PermissionProfileController@detachPermissionProfile')->name('profiles.permission.detach');
+       Route::post('profiles/{id}/permissions', 'ACL\PermissionProfileController@attachPermissionsProfile')->name('profiles.permissions.attach');
+       Route::any('profiles/{id}/permissions/create', 'ACL\PermissionProfileController@permissionsAvailable')->name('profiles.permissions.available');
+       Route::get('profiles/{id}/permissions/create', 'ACL\PermissionProfileController@permissionsAvailable')->name('profiles.permissions.available');  
+       Route::get('profiles/{id}/permissions', 'ACL\PermissionProfileController@permissions')->name('profiles.permissions');  
+
+       Route::get('permissions/{id}/profiles', 'ACL\PermissionProfileController@profiles')->name('permissions.profiles');  
+
+-----------------E NO NOSSO PermissionProfileController CRIAR O METODO PROFILE
+ public function profiles($idPermission)
+    {
+        if (!$permission = $this->permission->find($idPermission)) {
+            return redirect()->back();
+        }
+
+        $profiles = $permission->profiles()->paginate();
+
+        return view('admin.pages.permissions.profiles.profiles', compact('permission', 'profiles'));
+        
+    }
+
+---------------------------E AGORA VAMOS CRIAR UMA view    admin\pages\permission\profiles.blade.php 
+@extends('adminlte::page')
+
+@section('title', "Perfis da permissão {$permission->name}")
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('permissions.index') }}" class="active">Perfis</a></li>
+    </ol>
+
+    <h1>Perfis da permissão <strong>{{ $permission->name }}</strong></h1>
+
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th width="50">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($profiles as $profile)
+                        <tr>
+                            <td>
+                                {{ $profile->name }}
+                            </td>
+                            <td style="width=10px;">
+                                <a href="{{ route('profiles.permission.detach', [$profile->id, $permission->id]) }}" class="btn btn-danger">DESVINCULAR</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $profiles->appends($filters)->links() !!}
+            @else
+                {!! $profiles->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+
+----OK PERFEITO, EXIBINDO
+
+--------NOSSA View de PermissionProfileController FICOU ASSIM
+<?php
+
+namespace App\Http\Controllers\Admin\ACL;
+
+use App\Http\Controllers\Controller;
+use App\Models\Permission;
+use App\Models\Profile;
+use Illuminate\Http\Request;
+
+class PermissionProfileController extends Controller
+{
+    //
+
+    protected $profile, $permission;
+
+    public function __construct(Profile $profile, Permission $permission)
+    {
+        $this->profile = $profile;
+        $this->permission = $permission;
+
+       //  $this->middleware(['can:profiles']);
+    }
+  
+    public function permissions($idProfile)
+    {
+        $profile = $this->profile->find($idProfile);
+
+        if (!$profile) {
+            return redirect()->back();
+        }
+
+        $permissions = $profile->permissions()->paginate();
+
+        return view('admin.pages.profiles.permissions.permissions', compact('profile', 'permissions'));
+    }
+
+   
+    public function profiles($idPermission)
+    {
+        if (!$permission = $this->permission->find($idPermission)) {
+            return redirect()->back();
+        }
+
+        $profiles = $permission->profiles()->paginate();
+
+        return view('admin.pages.permissions.profiles.profiles', compact('permission', 'profiles'));
+    }
+
+    
+    public function permissionsAvailable(Request $request, $idProfile)
+    {
+        if (!$profile = $this->profile->find($idProfile)) {
+            return redirect()->back();
+        }
+
+       $filters = $request->except('_token');
+
+        $permissions = $profile->permissionsAvailable($request->filter);
+
+       //$permissions = $this->permission->All();
+      //  $permissions = $this->permission->paginate();
+
+        return view('admin.pages.profiles.permissions.available', compact('profile', 'permissions', 'filters'));
+    }
+
+
+  
+    public function attachPermissionsProfile(Request $request, $idProfile)
+    {
+        if (!$profile = $this->profile->find($idProfile)) {
+            return redirect()->back();
+        }
+
+        if (!$request->permissions || count($request->permissions) == 0) {
+            return redirect()
+                        ->back()
+                        ->with('info', 'Precisa escolher pelo menos uma permissão');
+        }
+
+        $profile->permissions()->attach($request->permissions);
+
+        return redirect()->route('profiles.permissions', $profile->id);
+    }
+
+
+    public function detachPermissionProfile($idProfile, $idPermission)
+    {
+        $profile = $this->profile->find($idProfile);
+        $permission = $this->permission->find($idPermission);
+
+        if (!$profile || !$permission) {
+            return redirect()->back();
+        }
+
+        $profile->permissions()->detach($permission);
+
+        return redirect()->route('profiles.permissions', $profile->id);
+    }
+    
+}
+--------------------------
+NOSSA view de available.phph FICOU ASSIM
+@extends('adminlte::page')
+
+@section('title', "Permissões do perfil {$profile->name}")
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('profiles.index') }}" class="active">Perfis</a></li>
+    </ol>
+
+    <h1>Permissões do perfil <strong>{{ $profile->name }}</strong></h1>
+
+    <a href="{{ route('profiles.permissions.available', $profile->id) }}" class="btn btn-dark">ADD NOVA PERMISSÃO</a>
+
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th width="50">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($permissions as $permission)
+                        <tr>
+                            <td>
+                                {{ $permission->name }}
+                            </td>
+                            <td style="width=10px;">
+                                <a href="{{ route('profiles.permission.detach', [$profile->id, $permission->id]) }}" class="btn btn-danger">DESVINCULAR</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $permissions->appends($filters)->links() !!}
+            @else
+                {!! $permissions->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+-----------------------------------------
+NOSSA view de permissions.blade.php FICOU ASSIM 
+@extends('adminlte::page')
+
+@section('title', 'Permissões disponíveis perfil {$profile->name}')
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('profiles.index') }}" class="active">Perfis</a></li>
+    </ol>
+
+    <h1>Permissões disponíveis perfil <strong>{{ $profile->name }}</strong></h1>
+
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-header">
+            <form action="{{ route('profiles.permissions.available', $profile->id) }}" method="POST" class="form form-inline">
+                @csrf
+                <input type="text" name="filter" placeholder="Filtro" class="form-control" value="{{ $filters['filter'] ?? '' }}">
+                <button type="submit" class="btn btn-dark">Filtrar</button>
+            </form>
+        </div>
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th width="50px">#</th>
+                        <th>Nome</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <form action="{{ route('profiles.permissions.attach', $profile->id) }} "  method="POST">
+                        @csrf
+
+                        @foreach ($permissions as $permission)
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="permissions[]" value="{{ $permission->id }}">
+                                </td>
+                                <td>
+                                    {{ $permission->name }}
+                                </td>
+                            </tr>
+                        @endforeach
+
+                        <tr>
+                            <td colspan="500">
+                                @include('admin.includes.alerts')
+
+                                <button type="submit" class="btn btn-success">Vincular</button>
+                            </td>
+                        </tr>
+                    </form>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $permissions->appends($filters)->links() !!}
+            @else
+                {!! $permissions->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+
+
+
+7------------------RELACIONAMNETO PLANOS X PERFIS N:N-  -------------------------------------------------     
+
+VAMOS CRIAR UMA MUGRATION 
+
+# php artisan make:migration create_plan_profile_table
+
+--------E CODIFICAR A MIGRATION permission_profile COM AS CHAVES ESTRANGEIRA PELO iD DAS TABELAS Plans e profiles
+que ja temos no BD
+ public function up()
+    {
+        Schema::create('plan_profile', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('plan_id');
+            $table->unsignedBigInteger('profile_id');
+
+            $table->foreign('plan_id')
+                        ->references('id')
+                        ->on('plans')
+                        ->onDelete('cascade');
+            $table->foreign('profile_id')
+                        ->references('id')
+                        ->on('profiles')
+                        ->onDelete('cascade');
+        });
+
+
+------------ RODAR MIGRATE PARA FAZER A TABELA PIVÓ NO BD  (não esquecer de SALVAR)
+
+# php artisan migrate
+
+-----------OK perfeito (criou tabela)
+
+---------------------CRIAR ROTA (Plans.permissions)
+ /* ROTA DAS PLANOS X PERFIL 
+            */
+
+            
+    Route::get('plans/{id}/profiles', 'ACL\PlanProfileController@profiles')->name('plans.profiles');
+
+----PROXIMO PASSO COLOCAR UM BOTAO NA NOSSA VIEW Admin\pages\Plans\index.blade.php E ROTEAR para 
+PAGINA DE LISTAGEM plans.profiles PASSANDO O ID DO PLANO $plan->id)
+ <td style="width: 250px;">
+                    <a href="{{ route('details.plans.index', $plan->url) }}" class="btn btn-primary">Detalhes</a>
+                    <a href="{{ route('plans.edit', $plan->url) }}" class="btn btn-warning">Edit</a>
+                    <a href="{{ route('plans.show', $plan->url) }}" class="btn btn-warning">VER</a>
+                    <a href="{{ route('plans.profiles', $plan->id) }}" class="btn btn-warning"><i class=" fas fa-address-book"></i></a>
+                    </td>
+
+
+----------- E ENTAO VAMOS CRIAR NOSSO CONTROLLER (PlanProfileController)           
+
+# php artisan make:controller Admin\ACL\PlanProfileController
+
+OBS: SE DER UM ERRO (e vai dar ) È PQ JA TEMOS A ROTA DECLARADA, BOM COMETAR ELA PARA RODAR O make:controller FAREMOS ISSO EM
+router\web.php
+
+//  Route::get('plans/{id}/profiles', 'ACL\PlanProfileController@profiles')->name('plans.profiles');
+
+
+----IR NA MODELS\Plan E LIBERAR O RELACIONAMENTO COM OS profiles
+// RELACIONAMENTO DPERFIL (profile) - ESSA SER OS PERFIS POSSIVEL NUM PLANO
+        public function profiles() {
+            return $this->belongsToMany(Profile::class);
+        } 
+
+------IR NA MODElS\Profile e LIBERAR RELACIONAMENTO COM OS PLANOS
+// RELACIONAMENTO DAS PERFILS - ESSA SER os PLANOS  POSSIVEL NUM PERFIL
+public function plans() {
+    return $this->belongsToMany(Plan::class);
+}   
+
+---PRONTO JA ESTAMOS COM A PlanProfileController CRIADO VAMOS CODIFICAR (nao esquecer de decometar a router)
+---ESSA CODIFICAÃO VAI SER BEM DIFERENTE DO OUTROS CONTROLLER
+---COMO SEMPRE VAMOS COMEÇAR PELO CONSTRUCT CO DUAS VARIAVEIS ($plan, $profile )
+
+  protected $plan, $profile;
+
+    public function __construct(Plan $plan, Profile $profile)
+    {
+        $this->plan = $plan;
+        $this->profile = $profile;
+
+      //  $this->middleware(['can:plans']);
+    }
+
+---E VAMOS FAZER É LISTAR OS PERFIS DE UM PLANO (listar os perfil d um Plano ----RECUPERANDO NOSSOS profile PELO id   EM UMA Function plans
+E LEVAR O RESULTADOS PARA UMA view de LISTAGEM
+
+  public function plans($idProfile)
+    {
+        if (!$profile = $this->profile->find($idProfile)) {
+            return redirect()->back();
+        }
+
+        $plans = $profile->plans()->paginate();
+
+        return view('admin.pages.profiles.plans.plans', compact('profile', 'plans'));
+    }
+
+------------- VANOS FAZER A view de LISTAGEM DAS PERMISSÕES DE UM PERFIL    admin.pages.plans.profiles.profiles
+@extends('adminlte::page')
+
+@section('title', "Perfis do plano {$plan->name}")
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('permissions.index') }}" class="active">Perfis</a></li>
+    </ol>
+
+    <h1>Perfis do plano <strong>{{ $plan->name }}</strong></h1>
+    <a href="{{ route('plans.profiles.available', $plan->id)}}" class="btn btn-dark">ADD NOVA PERMISSÃO</a>
+
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th width="50">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($profiles as $profile)
+                        <tr>
+                            <td>
+                                {{ $profile->name }}
+                            </td>
+                            <td style="width=10px;">
+                                <a href="{{ route('profiles.permission.detach', [$profile->id, $permission->id]) }}" class="btn btn-danger">DESVINCULAR</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $profiles->appends($filters)->links() !!}
+            @else
+                {!! $profiles->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+
+--------------------------------------------------------------------OK PERFEITO --SEGUINDO
+
+
+------- Vincular Permissões ao Perfil - PRIMEIRAMENTE VAMOS LISTAR TODAS AS PERMISSÕES PARA DEPOIS ESCOLHER A PERMISSÂO 
+-----VAMOS CRIAR UA ROTA 
+/* ROTA DAS PERMISSÕES X PERFIL 
+            */
+           Route::get('profiles/{id}/permissions/create', 'ACL\PermissionProfileController@permissionsAvailable')->name('profiles.permissions.available');  
+
+-----------------NA NOSSA VIEW  (admin\pages\plans\profiles\profiles.blade.php) VAMOS NO LINK DE ADD NOVA PERMISSÃO E MUDAMOS A ROTA 'profiles.permissions.available'           
+    </ol>
+
+    <h1>Perfis do plano <strong>{{ $plan->name }}</strong></h1>
+    <a href="{{ route('plans.profiles.available', $plan->id)}}" class="btn btn-dark">ADD NOVA PERMISSÃO</a>
+
+@stop
+)
+
+
+----- NO NOSSO PlanProfileController VAMOS CODIFICAR UM METODO COM O NOME profilesAvailable
+POR ENQUANTO NAO VAMOS FILTRAR , VAMOS PEGAR TODOS com $this->permission->All(); ou paginate()
+
+
+    public function profilesAvailable(Request $request, $idPlan)
+    {
+        if (!$plan = $this->plan->find($idPlan)) {
+            return redirect()->back();
+        }
+
+      //   $filters = $request->except('_token');
+
+       //  $profiles = $plan->profilesAvailable($request->filter);
+
+        //$profiles = $this->profile->All();
+       $profiles = $this->profile->paginate();
+
+        return view('admin.pages.plans.profiles.available', compact('plan', 'profiles', 'filters'));
+    }
+
+
+-------------VAMOS CRIAR UMA view   admin.pages.plans.profiles.available
+
+@extends('adminlte::page')
+
+@section('title', 'Perfis disponíveis para o plano {$plan->name}')
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ route('plans.index') }}">Planos</a></li>
+        <li class="breadcrumb-item"><a href="{{ route('plans.profiles', $plan->id) }}">Perfis</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('plans.profiles.available', $plan->id) }}" class="active">Disponíveis</a></li>
+    </ol>
+
+    <h1>Perfis disponíveis para o plano <strong>{{ $plan->name }}</strong></h1>
+
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-header">
+            <form action="{{ route('plans.profiles.available', $plan->id) }}" method="POST" class="form form-inline">
+                @csrf
+                <input type="text" name="filter" placeholder="Filtro" class="form-control" value="{{ $filters['filter'] ?? '' }}">
+                <button type="submit" class="btn btn-dark">Filtrar</button>
+            </form>
+        </div>
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th width="50px">#</th>
+                        <th>Nome</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <form action=" ", $plan->id) }}" method="POST">
+                        @csrf
+
+                        @foreach ($profiles as $profile)
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="profiles[]" value="{{ $profile->id }}">
+                                </td>
+                                <td>
+                                    {{ $profile->name }}
+                                </td>
+                            </tr>
+                        @endforeach
+
+                        <tr>
+                            <td colspan="500">
+                                @include('admin.includes.alerts')
+
+                                <button type="submit" class="btn btn-success">Vincular</button>
+                            </td>
+                        </tr>
+                    </form>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $profiles->appends($filters)->links() !!}
+            @else
+                {!! $profiles->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+
+-----------------------------------------------------ok SEGUINDO - exbindo TODOS (colocar rota atach e CODIFICAR O
+ METTODO PARA VINCULAR-ANEXAR)
+
+ --VAMOS FAZER UM ROTA DE VINCULAÇÃO
+
+ Route::post('plans/{id}/profiles', 'ACL\PlanProfileController@attachProfilesPlan')->name('plans.profiles.attach');
+    Route::any('plans/{id}/profiles/create', 'ACL\PlanProfileController@profilesAvailable')->name('plans.profiles.available');
+    Route::get('plans/{id}/profiles', 'ACL\PlanProfileController@profiles')->name('plans.profiles');
+       
+
+--------------------E COLOCAR ESSA ROTA NO FORMULÁRIO (VIEW admin.pages.plans.profiles.available) PASSANDO o ID DO PROFILE ($profile->id)
+
+ <tbody>
+                    <form action="{{ route('plans.profiles.attach', $plan->id) }}" method="POST">
+                        @csrf
+
+                        @foreach ($profiles as $profile)
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="profiles[]" value="{{ $profile->id }}">
+                                </td>
+                                <td>
+                                    {{ $profile->name }}
+                                </td>
+                            </tr>
+                        @endforeach
+
+---------VAMOS NO PlanProfileController E CODIFICAMOS O METODO attachProfilesProfile
+SE NAO EXISTE O PERFIL redirecione e se existe o perfil e a quantidade é E IGUAL (checkbox) A ZERO MANDE UMA MENSAGEM DE ALERT
+E SE FOR maior que zero OU ATENDER AS CONDICÕES VINCULE E va para VIEW de listagem 
+
+public function attachProfilesPlan(Request $request, $idPlan)
+    {
+        if (!$plan = $this->plan->find($idPlan)) {
+            return redirect()->back();
+        }
+
+        if (!$request->profiles || count($request->profiles) == 0) {
+            return redirect()
+                        ->back()
+                        ->with('info', 'Precisa escolher pelo menos um plano');
+        }
+
+        $plan->profiles()->attach($request->profiles);
+
+        return redirect()->route('plans.profiles', $plan->id);
+    }
+
+ ----------------FUNCIONANDO MAIS AINDA PRECISA DE AJUSTES  ( QUANDO CKICK EM ADD ainda continua exibindo todos as PERMISSOES, quando era pra so exibir
+ as permissoes que nao estavam vinculadas ainda) ----------------------VAMOS AJUSTAR
+
+-------------------TEMOS QUE IR NA NOSSA MODEL plan.php E CRIAR O METODO profilesAvailable E RECEBER UM FILTER QUE VAMOS CRIAR 
+PermissionProfileController E SW NAO EXISTIR RETORNAR NULL
+/**
+     * Profiles not linked with this plan
+     */
+    public function profilesAvailable($filter = null)
+    {
+        $profiles = Profile::whereNotIn('profiles.id', function($query) {
+            $query->select('plan_profile.profile_id');
+            $query->from('plan_profile');
+            $query->whereRaw("plan_profile.plan_id={$this->id}");
+        })
+        ->where(function ($queryFilter) use ($filter) {
+            if ($filter)
+                $queryFilter->where('profiles.name', 'LIKE', "%{$filter}%");
+        })
+        ->paginate();
+
+        return $profiles;
+    }
+
+-----E NO PlanProfileController LIBERAR O FILTRO DO METODO profilesAvailable
+
+public function profilesAvailable(Request $request, $idPlan)
+    {
+        if (!$plan = $this->plan->find($idPlan)) {
+            return redirect()->back();
+        }
+
+         $filters = $request->except('_token');
+
+         $profiles = $plan->profilesAvailable($request->filter);
+        //$profiles = $this->profile->All();
+        // $profiles = $this->profile->paginate();
+
+        return view('admin.pages.plans.profiles.available', compact('plan', 'profiles', 'filters'));
+    }
+------------------------------------------------------------------OK PERFEITO, VINCULANDO E EXIBIDO DOS 2 MODOS
+EXIBI INICIALMENTE OS QUE ESTAO VINCULADOS E AO ADD MODULO NAO EXIBI OS JA VINCULADOS... IMPORTANTE LEMBRAR
+QUE O FORMULARIOD E DESVICULAÇÂO ESTA SEM ROTA AINDA ...VAMOS AJUSTAR, MAS ANTES VAMOS FAZER A PESQUISA_BUSCA
+
+
+-----------------------
+-------Filtrar Perfils disponíveis (quando tivermos centenas de possibilidade de Perfis)
+---PRIMEIRO PASSO CRIAR ROTA (nao conflita pois esta em tipo any)
+ Route::any('plans/{id}/profiles/create', 'ACL\PlanProfileController@profilesAvailable')->name('plans.profiles.available');
+
+VAMOS EM View admin\pages\plans\profiles\profile E CONFERE ROTA DO FILTRO E FAZER O FILTER
+ <form action="{{ route('profiles.permissions.available', $profile->id) }}" method="POST" class="form form-inline">
+                @csrf
+                <input type="text" name="filter" placeholder="Filtro" class="form-control" value="{{ $filters['filter'] ?? '' }}">
+                <button type="submit" class="btn btn-dark">Filtrar</button>
+            </form>
+
+---VAMOS NO PlanProfileController e vamos pasaar nosso requeste PARA RECEBERR OS DADOS DO FORMULARIO
+FAZ UM VARIAVEL FITRO E FITRAR O REQUEST COM EXCEÇÃO DO __TOKEN            
+
+public function profilesAvailable(Request $request, $idPlan)
+    {
+        if (!$plan = $this->plan->find($idPlan)) {
+            return redirect()->back();
+        }
+
+         $filters = $request->except('_token');
+
+         $profiles = $plan->profilesAvailable($request->filter);
+        //$profiles = $this->profile->All();
+        // $profiles = $this->profile->paginate();
+
+        return view('admin.pages.plans.profiles.available', compact('plan', 'profiles', 'filters'));
+    }
+
+----------------------------------------OK FILTER (filtrando=buscando perfil)
+
+
+---------AGORA VAMOS REMOVER A PERMISSÂO (Desvincular Permissão do Perfil)
+
+----CRIAR NOSSA ROTA (Ela espera dois id)
+  Route::get('plans/{id}/profile/{idProfile}/detach', 'ACL\PlanProfileController@detachProfilePlan')->name('plans.profile.detach');
+    Route::post('plans/{id}/profiles', 'ACL\PlanProfileController@attachProfilesPlan')->name('plans.profiles.attach');
+    Route::any('plans/{id}/profiles/create', 'ACL\PlanProfileController@profilesAvailable')->name('plans.profiles.available');
+    Route::get('plans/{id}/profiles', 'ACL\PlanProfileController@profiles')->name('plans.profiles');
+    
+
+----VAMOS NO PlanProfileController e VAMOS FAZER O METODO detachPlanProfile PARA Desvincular
+RECEBE OS DOIS iD-RECUPERA A PERMISSÂO E PERFIL PELO ID - SE ENCONTRAR OS DOIS - DESVINCULAR PELA PERFIL - REDIRECIONAR
+
+ public function detachProfilePlan($idPlan, $idProfile)
+    {
+        $plan = $this->plan->find($idPlan);
+        $profile = $this->profile->find($idProfile);
+
+        if (!$plan || !$profile) {
+            return redirect()->back();
+        }
+
+        $plan->profiles()->detach($profile);
+
+        return redirect()->route('plans.profiles', $plan->id);
+    }
+    
+
+
+---VAMOS NA NOSSA PAGINA DE LISTAGEM DAS PERMISÃO profile.blade.php   E MODIFICA (se ja não tiver)
+  <tbody>
+                    @foreach ($profiles as $profile)
+                        <tr>
+                            <td>
+                                {{ $profile->name }}
+                            </td>
+                            <td style="width=10px;">
+                                <a href="{{ route('plans.profile.detach', [$plan->id, $profile->id]) }}" class="btn btn-danger">DESVINCULAR</a>
+                            </td>
+                        </tr>
+                    @endforeach
+
+-----------------------------   OK PERFEITO DESVINCULANDO
+
+-------------------Listar PLANO da PERFIS -------------------------------
+A LOGICA AQUI È PARA VISUALIZAR O CONTRARIO QUAIS PERFIS ESTA ASSOCIADO AQUELA PERMISSÂO
+VAMOS RESOLVER COMLOCANDO UM BOTAO NA View DE LISTAGEM (admin\pages\profiles\index.blade.php) E CODIFICA A LOGICA
+   @foreach($profiles as $profile)
+                 <tr>
+                    <td>{{ $profile->name }}</td>
+                    
+                    <td style="width: 250px;">
+                    <a href="{{ route('profiles.edit',  $profile->id) }}" class="btn btn-warning">EDITAR</a>
+                    <a href="{{ route('profiles.show',  $profile->id) }}" class="btn btn-warning">VER</a>
+                    <a href="{{ route('profiles.permissions',  $profile->id) }}" class="btn btn-warning" title="Permisões assocadas"><i class="fas fa-unlock-alt"></i></a>
+                    <a href="{{ route('profiles.plans',  $profile->id) }}" class="btn btn-warning" title="Planos assocadas"><i class="fas fa-list-ol"></i></a>
+                </td>
+                    </tr>
+                @endforeach
+
+----CRIAR ROTA (é  a ultima)
+Route::get('plans/{id}/profile/{idProfile}/detach', 'ACL\PlanProfileController@detachProfilePlan')->name('plans.profile.detach');
+    Route::post('plans/{id}/profiles', 'ACL\PlanProfileController@attachProfilesPlan')->name('plans.profiles.attach');
+    Route::any('plans/{id}/profiles/create', 'ACL\PlanProfileController@profilesAvailable')->name('plans.profiles.available');
+    Route::get('plans/{id}/profiles', 'ACL\PlanProfileController@profiles')->name('plans.profiles');
+    
+    Route::get('profiles/{id}/plans', 'ACL\PlanProfileController@plans')->name('profiles.plans');
+
+
+-----------------E NO NOSSO PlanProfileController CRIAR O METODO profiles
+ public function profiles($idPlan)
+    {
+        if (!$plan = $this->plan->find($idPlan)) {
+            return redirect()->back();
+        }
+
+        $profiles = $plan->profiles()->paginate();
+
+        return view('admin.pages.plans.profiles.profiles', compact('plan', 'profiles'));
+    }
+
+---------------------------E AGORA VAMOS CRIAR UMA view    aadmin.pages.plans.profiles.profiles.blade.php 
+@extends('adminlte::page')
+
+@section('title', "Perfis do plano {$plan->name}")
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('permissions.index') }}" class="active">Perfis</a></li>
+    </ol>
+
+    <h1>Perfis do plano <strong>{{ $plan->name }}</strong></h1>
+    <a href="{{ route('plans.profiles.available', $plan->id)}}" class="btn btn-dark">ADD NOVA PERMISSÃO</a>
+
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th width="50">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($profiles as $profile)
+                        <tr>
+                            <td>
+                                {{ $profile->name }}
+                            </td>
+                            <td style="width=10px;">
+                                <a href="{{ route('plans.profile.detach', [$plan->id, $profile->id]) }}" class="btn btn-danger">DESVINCULAR</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $profiles->appends($filters)->links() !!}
+            @else
+                {!! $profiles->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+
+-------------------------------------------OK PERFEITO, EXIBINDO
+
+
+-------NOSSA PlanProfileController FICOU ASSIM 
+<?php
+
+namespace App\Http\Controllers\Admin\ACL;
+
+use App\Http\Controllers\Controller;
+use App\Models\Plan;
+use App\Models\Profile;
+use Illuminate\Http\Request;
+
+class PlanProfileController extends Controller
+{
+    //
+    protected $plan, $profile;
+
+    public function __construct(Plan $plan, Profile $profile)
+    {
+        $this->plan = $plan;
+        $this->profile = $profile;
+
+      //  $this->middleware(['can:plans']);
+    }
+    
+    public function profiles($idPlan)
+    {
+        if (!$plan = $this->plan->find($idPlan)) {
+            return redirect()->back();
+        }
+
+        $profiles = $plan->profiles()->paginate();
+
+        return view('admin.pages.plans.profiles.profiles', compact('plan', 'profiles'));
+    }
+
+    
+    public function plans($idProfile)
+    {
+        if (!$profile = $this->profile->find($idProfile)) {
+            return redirect()->back();
+        }
+
+        $plans = $profile->plans()->paginate();
+
+        return view('admin.pages.profiles.plans.plans', compact('profile', 'plans'));
+    }
+
+
+    public function profilesAvailable(Request $request, $idPlan)
+    {
+        if (!$plan = $this->plan->find($idPlan)) {
+            return redirect()->back();
+        }
+
+         $filters = $request->except('_token');
+
+         $profiles = $plan->profilesAvailable($request->filter);
+        //$profiles = $this->profile->All();
+        // $profiles = $this->profile->paginate();
+
+        return view('admin.pages.plans.profiles.available', compact('plan', 'profiles', 'filters'));
+    }
+
+
+    public function attachProfilesPlan(Request $request, $idPlan)
+    {
+        if (!$plan = $this->plan->find($idPlan)) {
+            return redirect()->back();
+        }
+
+        if (!$request->profiles || count($request->profiles) == 0) {
+            return redirect()
+                        ->back()
+                        ->with('info', 'Precisa escolher pelo menos um plano');
+        }
+
+        $plan->profiles()->attach($request->profiles);
+
+        return redirect()->route('plans.profiles', $plan->id);
+    }
+
+    public function detachProfilePlan($idPlan, $idProfile)
+    {
+        $plan = $this->plan->find($idPlan);
+        $profile = $this->profile->find($idProfile);
+
+        if (!$plan || !$profile) {
+            return redirect()->back();
+        }
+
+        $plan->profiles()->detach($profile);
+
+        return redirect()->route('plans.profiles', $plan->id);
+    }
+    
+}
+
+---NOSSA VIEW profile.blade FICOU ASSIM 
+
+@extends('adminlte::page')
+
+@section('title', "Perfis do plano {$plan->name}")
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('permissions.index') }}" class="active">Perfis</a></li>
+    </ol>
+
+    <h1>Perfis do plano <strong>{{ $plan->name }}</strong></h1>
+    <a href="{{ route('plans.profiles.available', $plan->id)}}" class="btn btn-dark">ADD NOVA PERMISSÃO</a>
+
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th width="50">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($profiles as $profile)
+                        <tr>
+                            <td>
+                                {{ $profile->name }}
+                            </td>
+                            <td style="width=10px;">
+                                <a href="{{ route('plans.profile.detach', [$plan->id, $profile->id]) }}" class="btn btn-danger">DESVINCULAR</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $profiles->appends($filters)->links() !!}
+            @else
+                {!! $profiles->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+
+---NOSSA VIEW available.blade FICOU ASSIM 
+
+@extends('adminlte::page')
+
+@section('title', 'Permissões disponíveis perfil {$profile->name}')
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('profiles.index') }}" class="active">Perfis</a></li>
+    </ol>
+
+    <h1>Permissões disponíveis perfil <strong>{{ $profile->name }}</strong></h1>
+
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-header">
+            <form action="{{ route('profiles.permissions.available', $profile->id) }}" method="POST" class="form form-inline">
+                @csrf
+                <input type="text" name="filter" placeholder="Filtro" class="form-control" value="{{ $filters['filter'] ?? '' }}">
+                <button type="submit" class="btn btn-dark">Filtrar</button>
+            </form>
+        </div>
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th width="50px">#</th>
+                        <th>Nome</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <form action="{{ route('profiles.permissions.attach', $profile->id) }} "  method="POST">
+                        @csrf
+
+                        @foreach ($permissions as $permission)
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="permissions[]" value="{{ $permission->id }}">
+                                </td>
+                                <td>
+                                    {{ $permission->name }}
+                                </td>
+                            </tr>
+                        @endforeach
+
+                        <tr>
+                            <td colspan="500">
+                                @include('admin.includes.alerts')
+
+                                <button type="submit" class="btn btn-success">Vincular</button>
+                            </td>
+                        </tr>
+                    </form>
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $permissions->appends($filters)->links() !!}
+            @else
+                {!! $permissions->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+
+
+8----------------------AUTENTICAÇÃo ----------------------------
+
+No Laravel versão 6x temos que RODAR O COMANDO ABAIXO
+# composer require laravel/ui "^1.0" --dev
+
+# php artisan ui vue --auth 
+-----ESSE NAO É NECESSARIO JA QUE VOCE VAI TRABALHAR COM A AUTENTICAÇÃO DO AdminLTE E 
+VOCE PODE UTILIZAR O BOOKTRAP EM VEZ DO PACOTE vue, DEPOIS DE RODAR ELE VAI MANDAR VC INSTALAR O PACOTE npm, NO
+NOSSO CASO NAO VAMOS RODOAR ---CRIOU VARIAS PASTA, CRIOU DUAS ROTA (auth e Home) -- VAMOS APAGAR ESSA ROTA home
+/* ROTA DA HOME
+    */
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Auth::routes();
+
+//Route::get('/home', 'HomeController@index')->name('home');
+
+----E NO HTPP\Auth\LoginController _> ALTERAMOS A ROTA DE REDIRECT LOGIN
+DE----- protected $redirectTo = RouteServiceProvider::HOME;
+PARA ------protected $redirectTo = '/Admin';
+
+----FAÇA TAMBEM  nos no RegistreController e resetPaswordControlller, verificationController
+PODEMOS ALTERAR NO app\providers\AppServiceProvider.php -----------------------------------NÃO FIZ
+
+---SE VOCE ACESSAR O ENDEREÇO JA ESTA FUNCINANDO 
+http://127.0.0.1:8000/login
+COM UM FORMULARIO (meio torto)
+
+OBSERVAÇÂO: PARA DEIXAR ESSE FORMULARIO COM AS CARACTREOSTICA DO BOOTSTRAP PRECISARIAMOS ROTDAR AQUELE DOOS PACATES npm
+"npm install && npm run dev"   ---NAO VAMOS FZAER , POIS VAMOS USAR A AUTENTICACÃO DO AdminLTE
+
+---------------AUTENTICACÃO DO AdminLTE-------------------
+
+----VAMOS NA DOCUMENTAÇÂO DO AdminLTE (https://github.com/jeroennoten/Laravel-AdminLTE) E REALIZAR OS SEGUINTES PROCEDIMENTOS
+
+# php artisan adminlte:install --only=auth_views
+
+EM Resourde\views\auth  MUDA VARIAS PAGINAS (view)
+
+------------PODE DELETAR O DIRETORIO layouts (views\auth\layouts)  -----NÃO VOU FAZER
+
+-------PODEMOS DELETAR TAMBEM O ARQUIVO HOME e Welcome (views\auth\home.blade.php) -----NÃO VOU FAZER
+
+----PRONTO , SE ACESSAR LOGIN NOVAMNET ELE JA ACESSA PELO LOGIN AdminLTE  
+PODEMOS TESTAR , VAMOS NA router\web.php e NO GRUPO  DE ROTAS QUE CRIAMOS INCLUIR UM middleware
+Route::prefix('admin')
+                        ->namespace('Admin')
+                        ->middleware(['auth'])
+                        ->group(function()
+
+{
+E AGORA JA ESTA RESTRITA (redirecionamdo todos que nao tenha permisão -  auth)-------------Ok PERFEITO
+
+----AGORA VAMOS CRIAR UM SEEDER PARA INCLUIR UM USUARIO AUTENTICADO
+
+# php artisan make:seeder UsersTableSeeder
+
+CRIOU O SEEDER (vamos codifica-lo)---ESSE SEEDER VAI INCLUIR O REGISTRO NA NOSSA TABELA DO BD, QUANDO RODAMAS ELE
+ public function run()
+    {
+        User::Create([
+            'name' => 'carlos',
+            'email' => 'carlos@gmail.com',
+            'password' => bcrypt('casb'),
+        ]);
+    }
+    
+----VAMOS NO DatabaseSeeder.php E LIBERAMOS O UsersTableSeeder
+  public function run()
+    {
+        $this->call(UsersTableSeeder::class);
+        // $this->call(PlansTableSeeder::class);
+         //  $this->call(PlanosTableSeeder::class);
+
+    }
+
+---AGORA VAMOS RODAR O SEEDER
+# php artisan db:seed
+
+---CRIOU UM REGISTRO DE USUARIO NA TABELA USER DO BD (conferir NO phpAdmin)-----OK 
+
+---TESTAR A AUTENTICAÇÂO COM O REGISTRO (aparece o log e un nivel abaixo o logout)---OK NAVEGANDO
+
+---AINDA ESTA ACESIVEL O REGISTRO DEFAULT, POIS VAMOS PRECISAR NESSE PROJETO
+ (mais se vc quiser desabilitar e registrir o registro VAMOS em router\web.php)
+
+ Auth::routes(['register'=>false]);       - NÃo FIZEMOS
+
+----------------------------------------------------------------------OK PERFEITO
+
+9-------------------------------SITE--------------------------------------------------- SITE
+
+-----COMO NAO VAMOS USAR A PAGIANA welcome (ja deveriamos ter apagada)VAMOS SUBITRAIR ESSA ROTA E 
+CRIAR OUTRA PARA RECEBER O DIRCIONAMNETO CONTROLADOR POR UM CONTROLLER SiteCONTROLLER
+
+/* ROTA DA HOME
+    */
+
+//Route::get('/', function () {
+  //  return view('welcome');
+//});
+
+---VAI FICAR ASSIM 
+
+/* ROTA SO SITE
+    */
+
+Route::get('/', 'Site\SiteController@index')->name('site.home');
+
+
+-------CRIAR NOSSO SiteCONTROLLER
+
+# php artisan make:controller Site\SiteController
+
+--------PODE DELETAR O homeController -----NÃO FIZ
+
+---------CODIFICAR METODO index
+class SiteController extends Controller
+{
+    //
+    public function index()
+    {
+      //  $plans = Plan::with('details')->orderBy('price', 'ASC')->get();
+
+        return view('site.pages.home.index');
+
+        }
+
+  ----NÃO VAMOS PASSAR NADA POR ENQUANTO SO CHEGAR AQUI (na pagina index DO SITE)    
+
+  VAMOS FAZER NAS View e NOSSO ESTILO (css)  
+
+OBS: ------------------ a sequencia nao importa mas temos que mofificar nossa rota para pagina site\home atraves
+do SiteController ,pois a pagina welcone nao mais exite, depois fazer-nos nossa pagima layouts (app.blade)
+
+------------
+-------EM Admin\views  VAMOS CRIAR UM DIRETORIO Site e detro de Site CRIAREMOS NOSSA PAGINA 
+-------EM Admin\views\site\pages CRIAREMOS UM NOVO DIRETO home PARA FICAR NOSSAS HOMES
+-------EM Admin\views\site CRIAREMOS UM NOVO DIRETO layouts (criamos o app.blade.php)
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Planos</title>
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+	<link rel="stylesheet" type="text/css" href="style2.css">
+</head>
+<body>
+
+<div class="demo">
+    <div class="container">
+    	<div class="text-center">
+    		<h1 class="title-plan">Escolha o plano</h1>
+    	</div>
+        <div class="row">
+            <div class="col-md-4 col-sm-6">
+                <div class="pricingTable">
+                    <div class="pricing-content">
+                        <div class="pricingTable-header">
+                            <h3 class="title">Free</h3>
+                        </div>
+                        <div class="inner-content">
+                            <div class="price-value">
+                                <span class="currency">R$</span>
+                                <span class="amount">0,00</span>
+                                <span class="duration">Por Mês</span>
+                            </div>
+                            <ul>
+                                <li>Categorias</li>
+                                <li>Produtos</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="pricingTable-signup">
+                        <a href="#">Assinar</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="pricingTable">
+                    <div class="pricing-content">
+                        <div class="pricingTable-header">
+                            <h3 class="title">Premium</h3>
+                        </div>
+                        <div class="inner-content">
+                            <div class="price-value">
+                                <span class="currency">R$</span>
+                                <span class="amount">199,99</span>
+                                <span class="duration">Por Mês</span>
+                            </div>
+                            <ul>
+                                <li>Categorias</li>
+                                <li>Produtos</li>
+                                <li>Mesas</li>
+                                <li>Cardápio</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="pricingTable-signup">
+                        <a href="#">Assinar</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="pricingTable">
+                    <div class="pricing-content">
+                        <div class="pricingTable-header">
+                            <h3 class="title">Business</h3>
+                        </div>
+                        <div class="inner-content">
+                            <div class="price-value">
+                                <span class="currency">R$</span>
+                                <span class="amount">499,99</span>
+                                <span class="duration">Por Mês</span>
+                            </div>
+                            <ul>
+                                <li>Categorias</li>
+                                <li>Produtos</li>
+                                <li>Mesas</li>
+                                <li>Cardápio</li>
+                                <li>Suporte</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="pricingTable-signup">
+                        <a href="#">Assinar</a>
+                    </div>
+                </div>
+            </div><!--end-->
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
+
+----VAMOS NO DIRETORIO public E CRIAMOS O DIRETORIO css
+---- E DENTRO DELE o ARQUIVO css\site.css QUE DARA ESTILO NOSSA PAGINA DE layouts
+a:hover {
+    text-decoration: none;
+}
+.title-plan {
+    font-family: 'Lato', sans-serif;
+    text-align: center;
+    font-size: 4em;
+    color: #B63132;
+    margin: 26px 0;
+}
+.pricingTable{
+    font-family: 'Lato', sans-serif;
+    text-align: center;
+    margin: 0 15px;
+}
+.pricingTable .pricing-content{
+    background-color: #fff;
+    padding: 15px 10px 10px;
+    margin: 0 0 10px;
+    border-radius: 0 70px 0 0;
+}
+.pricingTable .title{
+    color: #B63132;
+    font-size: 27px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 15px;
+}
+.pricingTable .inner-content{
+    background: linear-gradient(to bottom, #de2426, #773b3b);
+    padding: 30px 0 15px;
+    border-radius: 0 70px 0 0;
+}
+.pricingTable .price-value{
+    color: #B63132;
+    background-color: transparent;
+    font-size: 45px;
+    line-height: 40px;
+    width: 85%;
+    padding: 20px 5px 15px 0;
+    margin: 0 0 15px;
+    border-radius: 0 100px 100px 0;
+    border: 7px solid #fff;
+    border-left: none;
+    position: relative;
+    z-index: 1;
+}
+.pricingTable .price-value:before{
+    content: '';
+    background: #fff;
+    border-radius: 0 100px 100px 0;
+    position: absolute;
+    left: 5px;
+    bottom: 5px;
+    right: 5px;
+    top: 5px;
+    z-index: -1;
+}
+.pricingTable .price-value .amount{
+    font-size: 50px;
+    font-weight: 800;
+    line-height: 50px;
+    display: inline-block;
+}
+.pricingTable .price-value .currency{
+    font-size:30px;
+    font-weight: 700;
+    vertical-align: top;
+    margin: -10px 0 0;
+    display: inline-block;
+}
+.pricingTable .duration{
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    line-height: 20px;
+    text-transform: uppercase;
+    display: block;
+}
+.pricingTable .pricing-content ul{
+    color: #fff;
+    font-size: 17px;
+    font-weight: 600;
+    line-height: 40px;
+    text-align: left;
+    letter-spacing: 1px;
+    padding: 0 0 0 20px;
+    margin: 0;
+    list-style: none;
+    display: inline-block;
+}
+.pricingTable .pricing-content ul li{ position: relative; }
+.pricingTable .pricing-content ul li:before{
+    content: '';
+    background-color: #fff;
+    height: 12px;
+    width: 12px;
+    margin: auto;
+    position: absolute;
+    left: -20px;
+    top: 0;
+    bottom: 0;
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+}
+.pricingTable .pricingTable-signup{
+    background: linear-gradient(to bottom, #de2426, #773b3b);
+    padding: 10px 0;
+    border-radius:0 0 0 50px;
+    border: 9px solid #fff;
+}
+.pricingTable .pricingTable-signup a{
+    color: #fff;
+    font-size: 25px;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 7px 25px;
+    border: 2px solid #fff;
+    border-radius: 50px;
+    display: inline-block;
+    transition: all 0.3s;
+}
+.pricingTable .pricingTable-signup a:hover{
+    text-shadow: 0 0 5px #000;
+    box-shadow: 0 0 15px rgba(0,0,0,0.5);
+}
+.pricingTable.pink .inner-content,
+.pricingTable.pink .pricingTable-signup{
+    background: linear-gradient(to bottom, #ff51b6, #ec008c);
+}
+.pricingTable.pink .title,
+.pricingTable.pink .price-value{
+    color: #ec008c;
+}
+.pricingTable.purple .inner-content,
+.pricingTable.purple .pricingTable-signup{
+    background: linear-gradient(to bottom, #DA22FF, #9733EE);
+}
+.pricingTable.purple .title,
+.pricingTable.purple .price-value{
+    color: #9733EE;
+}
+@media only screen and (max-width: 990px){
+    .pricingTable{ margin: 0 25px 40px; }
+}
+@media only screen and (max-width: 767px){
+    .pricingTable{ margin: 0 0 40px; }
+}
+
+-------- PARA ESTILIZAR (puxAR css) NA View app.blade e NA REFERENCIA IMPRIMIR CAMINHO
+
+---------É  ASSIM---- <link rel="stylesheet" type="text/css" href="style2.css">
+--------É  VAI FICAR ASSIMM ASSIM---- <link rel="stylesheet" type="text/css" href="{{ url('css/site.css') }}">
+
+-----------------------------------------------------------------------------------
+
+-----AGORA VAMOS TRABALHAR NA view home\index , LEMBRA QUE ESTAMOS QUERENDO EXIBILA NO METODO indes DO SiteCONTROLLER
+
+-----ELA ESTA EM BRANCO ....VAMOS USAR A DIRETRIZ extends PARA PUXA O MODELO (iayout app.blade.php)
+
+@extends('site.layouts.app')
+
+
+@section('content')
+
+
+
+@endsection
+
+---------------------------------------------OK PERFEITO (Já esta indo para view index do home)
+
+---------O QUE VAMOS FAZER AGORA É OTIMIZAR NOSSA PAGINA DE layouts --DEIXANDO DESSA MANEINA app.blade
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Planos</title>
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+	<link rel="stylesheet" type="text/css" href="{{ url('css/site.css') }}">
+</head>
+<body>
+
+<div class="demo">
+    <div class="container">
+    	@yield('content')
+       
+    </div>
+</div>
+
+</body>
+</html>
+
+
+--- FICANDO PARA INDEx  da home SOMENTE O ESPECIFICO DO QUE È DEtALHES
+
+@extends('site.layouts.app')
+
+
+@section('content')
+<div class="text-center">
+    		<h1 class="title-plan">Escolha o plano</h1>
+    	</div>
+        <div class="row">
+            <div class="col-md-4 col-sm-6">
+                <div class="pricingTable">
+                    <div class="pricing-content">
+                        <div class="pricingTable-header">
+                            <h3 class="title">Free</h3>
+                        </div>
+                        <div class="inner-content">
+                            <div class="price-value">
+                                <span class="currency">R$</span>
+                                <span class="amount">0,00</span>
+                                <span class="duration">Por Mês</span>
+                            </div>
+                            <ul>
+                                <li>Categorias</li>
+                                <li>Produtos</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="pricingTable-signup">
+                        <a href="#">Assinar</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="pricingTable">
+                    <div class="pricing-content">
+                        <div class="pricingTable-header">
+                            <h3 class="title">Premium</h3>
+                        </div>
+                        <div class="inner-content">
+                            <div class="price-value">
+                                <span class="currency">R$</span>
+                                <span class="amount">199,99</span>
+                                <span class="duration">Por Mês</span>
+                            </div>
+                            <ul>
+                                <li>Categorias</li>
+                                <li>Produtos</li>
+                                <li>Mesas</li>
+                                <li>Cardápio</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="pricingTable-signup">
+                        <a href="#">Assinar</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="pricingTable">
+                    <div class="pricing-content">
+                        <div class="pricingTable-header">
+                            <h3 class="title">Business</h3>
+                        </div>
+                        <div class="inner-content">
+                            <div class="price-value">
+                                <span class="currency">R$</span>
+                                <span class="amount">499,99</span>
+                                <span class="duration">Por Mês</span>
+                            </div>
+                            <ul>
+                                <li>Categorias</li>
+                                <li>Produtos</li>
+                                <li>Mesas</li>
+                                <li>Cardápio</li>
+                                <li>Suporte</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="pricingTable-signup">
+                        <a href="#">Assinar</a>
+                    </div>
+                </div>
+            </div><!--end-->
+            </div>
+
+@endsection
+
+-------TEM O MESMO RESULTADO, MAS FICA MAIS ORGANIZADO PARA SE USAR O LAYOUT-------OK
+
+10---------------Listando os Planos Dinâmicamente NO SITE-----------------
+
+----VAMOS NO SiteController E NO METODO INDEX (listagem)
+VAMOS RECUPERAR NOSSOS PLANOS DO BD NUMA VARIAVEL $Plan
+
+--------RECUPERAR TODOS , NAO ESQUECER DE DECLARAR PLAN (tem que escrever ou reescrever)
+public function index()
+    {
+             $plans = Plan::All();
+        //  $plans = Plan::with('details')->orderBy('price', 'ASC')->get();
+
+        return view('site.pages.home.index');
+    }
+
+---PARA RECUPERAR OS PLANOS JA COM SEUS DETALHES
+public function index()
+    {
+     
+       // $plans = Plan::All();
+          $plans = Plan::with('details')->orderBy('price', 'ASC')->get();
+
+        return view('site.pages.home.index', compact ('plans'));
+    }
+---------- E VAMOS NA NOSSA View de LISTAGEM index.blade.php E NAO VAMOS DEIXAR-LA FIXA  E SIM DINAMNICA
+(muda bastante), POIS VAMOS DEIXAE TUDO DENTRO DE UM @foreach E IMPRIMIREMOS OS VALORES DINAMICAMENTE {{ }}
+
+@extends('site.layouts.app')
+
+@section('content')
+<div class="text-center">
+    		<h1 class="title-plan">Escolha o plano</h1>
+    	</div>
+        <div class="row">
+            @foreach($plans as $plan)
+            <div class="col-md-4 col-sm-6">
+                <div class="pricingTable">
+                    <div class="pricing-content">
+                        <div class="pricingTable-header">
+                            <h3 class="title">{{$plan->name}}</h3>
+                        </div>
+                        <div class="inner-content">
+                            <div class="price-value">
+                                <span class="currency">R$</span>
+                                <span class="amount">{{ number_format($plan->price, 2, ',' , '.')}}</span>
+                                <span class="duration">Por Mês</span>
+                            </div>
+                            <ul>
+                                <li>Categorias</li>
+                                <li>Produtos</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="pricingTable-signup">
+                        <a href="#">Assinar</a>
+                    </div>
+                    </div>
+               
+            </div><!--end-->
+            @endforeach
+            </div>
+
+@endsection
+
+--------------------------------------OK Dando certo puxou todos os Planos, MAS VAMOS FAZER OUTRO (LOOP) @foreach PARA 
+OS DETALHES , MODIFICAMOS NOVAMNETE A view Index (LISTAGEM) COLOCANDO LOOP DENTRO DAS ul 
+@extends('site.layouts.app')
+
+@section('content')
+<div class="text-center">
+    		<h1 class="title-plan">Escolha o plano</h1>
+    	</div>
+        <div class="row">
+            @foreach($plans as $plan)
+            <div class="col-md-4 col-sm-6">
+                <div class="pricingTable">
+                    <div class="pricing-content">
+                        <div class="pricingTable-header">
+                            <h3 class="title">{{$plan->name}}</h3>
+                        </div>
+                        <div class="inner-content">
+                            <div class="price-value">
+                                <span class="currency">R$</span>
+                                <span class="amount">{{ number_format($plan->price, 2, ',' , '.')}}</span>
+                                <span class="duration">Por Mês</span>
+                            </div>
+                            <ul>
+                            @foreach ($plan->details as $detail)
+                                <li>{{ $detail->name }}</li>
+                            @endforeach
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="pricingTable-signup">
+                        <a href="#">Assinar</a>
+                    </div>
+                    </div>
+               
+            </div><!--end-->
+            @endforeach
+            </div>
+
+@endsection
+
+---------------------------------------------OK PERFEITO
+
+11------------------------------- Validando as Querys com o Laravel Debugbar
+NAO VOU FAZER, MAS É IMPORTANTE PARA UM DESEMVOVELDOR ----AULA 04 DO MODULO 08
+
+12 -------------------------Ordenar Planos no LaraFood pelo preço -- NO NOSSO CASO JA ESTA
+---VAMOS NO SiteController E PASSA UMA (order) FICANDO ASSIM:
+ public function index()
+    {
+     
+       // $plans = Plan::All();
+          $plans = Plan::with('details')->orderBy('price', 'ASC')->get();
+
+        return view('site.pages.home.index', compact ('plans'));
+    }
+
+
+---------------------------------------------------- ESTAMOS COM QUATRO (04) PLANOS
+
+
+
+
+
+
+
+

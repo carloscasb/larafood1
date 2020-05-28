@@ -1,0 +1,396 @@
+13--------------------CRIAR OS TENANTS (EMPRES)A--------------------------------------------
+
+-----Criar Tabela e Model de tenants e organizar migrations
+
+# php artisan make:model Models\Tenant -m 
+
+---------- CODIFICAR NOSSA MIGTRATION TENDO A CHAVE ESTRANGEIRA O Plan_id referemcia ao ID da TABELA Plans
+ public function up()
+    {
+        Schema::create('tenants', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('plan_id');
+           // $table->uuid('uuid');
+            $table->string('cnpj')->unique();
+            $table->string('name')->unique();
+            $table->string('url')->unique();
+            $table->string('email')->unique();
+            $table->string('logo')->nullable();
+
+            // Status tenant (se inativar 'N' ele perde o acesso ao sistema)
+            $table->enum('active', ['Y', 'N'])->default('Y');
+
+            // Subscription
+            $table->date('subscription')->nullable(); // Data que se inscreveu
+            $table->date('expires_at')->nullable(); // Data que expira o acesso
+            $table->string('subscription_id', 255)->nullable(); // Identificado do Gateway de pagamento
+            $table->boolean('subscription_active')->default(false); // Assinatura ativa (porque pode cancelar)
+            $table->boolean('subscription_suspended')->default(false); // Assinatura cancelada
+
+            $table->timestamps();
+
+
+            $table->foreign('plan_id')->references('id')->on('plans');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('tenants');
+    }
+}
+
+--------------------TAMBEM TEMOS QUE NA TABELA USER LIGAR A UMA EMPRESA (Tenant), POIS TODO USUARIO ESTARA LIGADO
+A UMA EMPRESA, VAMOS NA MIGRATIONS DE USER (User_Table) E FAZER UMA CHAVE ESTRANGEIRA DE USER PARA TENANT
+public function up()
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('tenant_id');
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+
+            $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
+        });
+    }
+
+    ----------------------------------------------------IMPORTANTE
+    A MIGTRATION TENANT TEM QUE ESTA ANTES DA MIGRATION USER (VAMOS TER QUE NOMEAR A MIGRATION
+    TEMANT ---vamos mexer na data dela, VAMOS COLOCAR UM ANO MAIS CEDO POR EXEMPLO 2014)
+
+    ------------A MIGRATION PLANS ACONTECE A MESMA COIS ATAMBEM IREMOS RENOMEAR_LA MUDANDO O ANO 
+    PARA 2014 SUBIU ---PLANS-TENANTS-USER
+
+    ---MEXEMOS NAS MIGRATIONS MANUALMENTE TEMOS QUE RODAR O COMANDO AUTOLOAD (sempre)
+
+    # composer dump-autoload
+
+    ----------------ERRATA ---quando estavamos fazendo as tabelas a de detail ficou errada , mudamos para certa
+    mudamos de detail_plans  PARA details_plan  
+   
+ public function up()
+    {
+        Schema::create('details_plan', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('plan_id');
+            $table->foreign('plan_id')->references('id')->on('plans')->onDelete('cascade');
+
+            $table->String('name');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('details_plan');
+    }
+}
+
+-------- COMO VAMOS RENOVER TODOS OS REGISTROS (impar tabelas) FOI EM BOA HORA 
+---RODAMOS O CAMANDO refresc PARA DELETAR OS REGISTRO E REFAZER AS ESTRUTURAS DA TABELA
+
+# php artisan migrate:refresh
+
+----DEU UM EXCESSÂO, ELE NAO COSEGUI DELETAR TUDO, ESTAO VAMOS RODAR migrate:fresh , PARA DELETAR TODAS AS TABELAS
+
+# php artisan migrate:fresh
+
+-----E VOLTAMOS A DAR O CAMANDO refresh PARA CRIAR AS TABELAS NOVAMANETE, PARA CONERIR
+
+# php artisan migrate:refresh
+
+--------------------------------------------------------------------------OK PERFEITPO , CRIOU NOVAMNETE NOSSAS TABELAS VAZIAS
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+14-----AGORA VAMOS CRIAR OS SEEDER PARA POPULAR O TENENTS e O PLANS------------------
+
+# php artisan make:seeder TenantsTableSeeder
+
+#  php artisan make:seeder PlansTableSeeder
+
+---CONFERIR OS FiLLABLE NA MODEL (O do Tenants nao foi definido, vamos definir)
+
+protected $fillable = [
+        'cnpj', 'name', 'url', 'email', 'logo', 'active',
+        'subscription', 'expires_at', 'subscription_id', 'subscription_active', 'subscription_suspended',
+    ];
+
+
+-----------E CODIFICAR-LOS OS SEEDER...COLOCAR UM REGISTRO NA NOSSA TABELAS PARA TESTAR
+---SEEDER DO PLAN
+ public function run()
+    {
+        //
+        Plan::create([
+            'name' => 'Businers',
+            'url' => 'businers',
+            'price' => 499.99,
+            'description' => 'Plano Empresarial',
+        ]);
+    }
+
+ - ANTES DO SEEDER DO TENANT - VAMOS TER QUE PASSAR O ID DO NOSSO PLAN PARA RECUPERAR-LOS PARA ISSO VAMOS TER QUE CRIAR UM RELACIONAMNETO
+ENTRE AS TABELAS PLANS E TENANTS DE 1:N JA QUE O PLANO PODE TER MUITO TENANTS E O TENANTS SOMENTE UM PLANO
+---VAMOS NA MODEL PLANS  
+ // RELACIONAMENTO PLANO TENANT - 1:N UM PLANO VARIOS TENANTS ----E UM TENANT ESTA RELACIONANDO A UM  PLANO
+        public function tenants() {
+            return $this->hasMany(Tenant::class);
+        } 
+-----APROVEITAMOS E VAMOS NA MODEL TENANT E FAZER UM RELACIONAMNETO 1:N QUE RETORNO TODOS USUARIOS E OUTRO QUE
+RETORNE OS PLANS DE MUITO PARA MUITOS
+// RELACIONAMENTO COM O USUARIO
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
+     // RELACIONAMENTO COM O PLANO
+
+    public function plan()
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
+}
+--------------SEEDER DO USER 
+public function run()
+    {
+        $tenant = Tenant::first();
+
+        $tenant->users()->create([
+            'name' => 'Carlos',
+            'email' => 'carlos@gmail.com',
+            'password' => bcrypt('casb'),
+
+            ]);   
+
+----SEEDER DO TENANT
+ public function run()
+    {
+        //
+        $plan = Plan::first();
+
+        $plan->tenants()->create([
+            'cnpj' => '23882706000120',
+            'name' => 'EspecializaTi',
+            'url' => 'especializati',
+            'email' => 'carlos@gmail.com',
+        ]);
+
+----AGORA NO DatabaseSeeder.php temos qie LIBERAR EM ORDEM CORRETA        
+
+public function run()
+    {
+       // $this->call(UsersTableSeeder::class);
+       // $this->call(PlansTableSeeder::class);
+        //  $this->call(PlanosTableSeeder::class);
+
+        $this->call([
+            PlansTableSeeder::class,
+            TenantsTableSeeder::class,
+            UsersTableSeeder::class,
+
+
+        ]);
+
+    }
+}
+
+----UFFFA , AGORA SIM VAMOS RODAR NOSSO SEEDER
+# php artisan db:seed
+
+----------------------------------------OK PERFEITO CRIOU CO SUCESSO (confere no phpadmin)
+
+15-----------Cadastrar Novo Tenant pelo Site ----- ASSINATURA ---------------------------- OK PERFEITO MOSTRANDO PLANO
+
+------VANOS CRUAR UMA SESÂO EM SiteControlller --
+CAPTURA UMA PLANO POR SUA url E CONDICIONA SE NAO ENCONTRAR NAO FAZ NADA E SE ENCONTRA CRIA UMA SESSÃO COM PLAN E REDIRECIONA
+PARA View DE REGISTRO
+public function plan($url)
+    {
+        if (!$plan = Plan::where('url', $url)->first()) {
+            return redirect()->back();
+        }
+
+        session()->put('plan', $plan);
+
+        return redirect()->route('register');
+    }
+
+---FAZER A ROTA 
+/* ROTA SO SITE
+    */
+Route::get('/plan/{url}', 'Site\SiteController@plan')->name('plan.subscription');
+Route::get('/', 'Site\SiteController@index')->name('site.home');
+
+
+--IR NA view  stie\pages\home\undex E APONTAR A ROTA (ele esta dentro do LOOp)
+</div>
+                    <div class="pricingTable-signup">
+                    <a href="{{ route('plan.subscription', $plan->url) }}">Assinar</a>
+                    </div>
+                    </div>
+----AO ATUALIZAR E TENTAR "ASSINAR" VAI DAR UM ERRO POIS ELE ESTA MANDANDO PARA ROTA HOME (se vc estiver autenticado)
+---VAMOS NA milddwwd\regdirectifAutentiction e MUDA A REDIRECT
+public function handle($request, Closure $next, $guard = null)
+    {
+        if (Auth::guard($guard)->check()) {
+            return redirect('/admin');
+        }
+
+        return $next($request);
+    }
+
+------------OK ATUALIZANDO ELE JA MANDA PARA view REGISTER (agora vamos ter que customizare o arquivo register pois 
+este arquivo nao tem nada ...confere em resource\views\auth\register.blade.php)
+
+@extends('adminlte::register')
+
+
+VAMOS CUSTOMIZAR ---INDO NA DOCUMENTAÇÂO DO adminLTE (https://github.com/jeroennoten/Laravel-AdminLTE)
+ /*<!---
+8. Customize views
+If you need full control over the provided views, you can publish them:
+
+php artisan adminlte:install --only=main_views
+Now, you can edit the views in resources/views/vendor/adminlte  ---> */
+
+
+-----E RODAR O COMANDO ABAIXO
+
+# php artisan adminlte:install --only=main_views
+
+E VAI GUARDAR EM  resources/views/vendor/adminlte
+
+VAMOS EM resources/views/vendor/adminlteregister.blade.php e customizar colocando o plano que o usuario escolheu
+PARA ISSO VAMOS CAPTURAR A session() PARA IMPRIMIR O PLANO (PELO OBJETO DE PLAN) NOME  (se tiverimprimar se nao valor defauld)
+@section('body')
+    <div class="register-box">
+        <div class="register-logo">
+            <a href="{{ $dashboard_url }}">{!! config('adminlte.logo', '<b>Admin</b>LTE') !!}</a>
+        </div>
+        <div class="card">
+            <div class="card-body register-card-body">
+                <p class="login-box-msg">{{ __('adminlte::adminlte.register_message') }}</p>
+
+                   <p><strong>Plano:</strong> {{ session('plan')->name ?? ''}}</p> 
+
+                <form action="{{ $register_url }}" method="post">
+                    {{ csrf_field() }}
+
+------APROVEITAMOS PARA INSERIR OS CAMPO DE CNPJ e EMPRESA na view
+ <div class="input-group mb-3">
+                        <input type="text" name="cnpj" class="form-control {{ $errors->has('cnpj') ? 'is-invalid' : '' }}" value="{{ old('cnpj') }}"
+                               placeholder="CNPJ" autofocus>
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-user"></span>
+                            </div>
+                        </div>
+
+                        @if ($errors->has('cnpj'))
+                            <div class="invalid-feedback">
+                                <strong>{{ $errors->first('cnpj') }}</strong>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <input type="text" name="empresa" class="form-control {{ $errors->has('empresa') ? 'is-invalid' : '' }}" value="{{ old('empresa') }}"
+                               placeholder="Empresa" >
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-user"></span>
+                            </div>
+                        </div>
+
+                        @if ($errors->has('empresa'))
+                            <div class="invalid-feedback">
+                                <strong>{{ $errors->first('empresa') }}</strong>
+                            </div>
+                        @endif
+                    </div>
+------------------------------------------------------------------------OK PERFEITO
+
+----ATENÇÂO ----SE TENTAMOS INCLUIR EELE VAI PARA O CONTROLE Http\controllers\Auth\registerController E NAO SER MAIS DO MEMSO MODO A INCLUSÂO (create)
+POIS AGORA VAI TER YODO UM PROCESSO, VAI TER QUE IR PLANOS (criar no plano o tenant), NA TENANT (criar na tenant o usuario)
+
+---ANTES O METODO create ESTAVA ASSIM (vamos refazer)
+  return User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+        ]);
+        
+---REFZER PARA FICAR ASSIM ----
+----- CRIAR UM TENANTE ATRAVES DO DO PLAN , PRIMEIRO PEGAR O PLAN E( se nao encontrar o ojeto plan ou session plan redirecone para home , se encontrar 
+) SE ENCONTRA O PLAN, ATRAVES DO RELACIONAMENTO FAZ UM NOVO TENANT e
+ APOS PEGAR O TENANT CRIADO E  VAMOS CRIAR o USER ATRAVES DO TENANT (criar usuarios dentro do tenant)
+
+protected function create(array $data)
+    {
+        if (!$plan = session('plan')) {
+            return redirect()->route('site.home');
+        }
+
+        $tenant= $plan->tenants()->create([
+            'cnpj' => $data['cnpj'],
+            'name' => $data['empresa'],
+            'url' => Str::kebab($data['empresa']),
+            'email' =>$data['email'],
+
+            'subscription' => now(),
+            'expires_at' => now()->addDays(),
+        ]);
+
+
+        $user = $tenant->users()->create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => bcrypt($data['password']),
+            
+        ]);       
+        return $user;
+    }
+}
+
+
+
+
+
+OBS : QUANDO SE TRABALHA COM "Str" TEMOS QUE DECLARAR A CLASSE
+use Illuminate\Support\Str;
+
+---NO MESMO registerController VALIDAMOS O CNPJ E EMPRESA, (falar no final que empresa se refere a colunA NAME)
+ protected function validator(array $data)
+    {
+        return Validator::make($data, [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'cnpj' => ['required', 'unique:tenants'],
+            'empresa' => ['required', 'unique:tenants, name']
+        ]);
+    }
+
+----------------------------------------------------NÃO ESTA INDO, DEVE SE AS VALIDA~ÇOES ..AMANHA VEJO ISSO
+
+16-----------
+
+
+
+
+17-----------
