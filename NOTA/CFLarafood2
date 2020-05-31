@@ -1,0 +1,1953 @@
+13--------------------CRIAR OS TENANTS (EMPRES)A--------------------------------------------
+
+-----Criar Tabela e Model de tenants e organizar migrations
+
+# php artisan make:model Models\Tenant -m 
+
+---------- CODIFICAR NOSSA MIGTRATION TENDO A CHAVE ESTRANGEIRA O Plan_id referemcia ao ID da TABELA Plans
+ public function up()
+    {
+        Schema::create('tenants', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('plan_id');
+           // $table->uuid('uuid');
+            $table->string('cnpj')->unique();
+            $table->string('name')->unique();
+            $table->string('url')->unique();
+            $table->string('email')->unique();
+            $table->string('logo')->nullable();
+
+            // Status tenant (se inativar 'N' ele perde o acesso ao sistema)
+            $table->enum('active', ['Y', 'N'])->default('Y');
+
+            // Subscription
+            $table->date('subscription')->nullable(); // Data que se inscreveu
+            $table->date('expires_at')->nullable(); // Data que expira o acesso
+            $table->string('subscription_id', 255)->nullable(); // Identificado do Gateway de pagamento
+            $table->boolean('subscription_active')->default(false); // Assinatura ativa (porque pode cancelar)
+            $table->boolean('subscription_suspended')->default(false); // Assinatura cancelada
+
+            $table->timestamps();
+
+
+            $table->foreign('plan_id')->references('id')->on('plans');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('tenants');
+    }
+}
+
+--------------------TAMBEM TEMOS QUE NA TABELA USER LIGAR A UMA EMPRESA (Tenant), POIS TODO USUARIO ESTARA LIGADO
+A UMA EMPRESA, VAMOS NA MIGRATIONS DE USER (User_Table) E FAZER UMA CHAVE ESTRANGEIRA DE USER PARA TENANT
+public function up()
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('tenant_id');
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+
+            $table->foreign('tenant_id')->references('id')->on('tenants')->onDelete('cascade');
+        });
+    }
+
+    ----------------------------------------------------IMPORTANTE
+    A MIGTRATION TENANT TEM QUE ESTA ANTES DA MIGRATION USER (VAMOS TER QUE NOMEAR A MIGRATION
+    TEMANT ---vamos mexer na data dela, VAMOS COLOCAR UM ANO MAIS CEDO POR EXEMPLO 2014)
+
+    ------------A MIGRATION PLANS ACONTECE A MESMA COIS ATAMBEM IREMOS RENOMEAR_LA MUDANDO O ANO 
+    PARA 2014 SUBIU ---PLANS-TENANTS-USER
+
+    ---MEXEMOS NAS MIGRATIONS MANUALMENTE TEMOS QUE RODAR O COMANDO AUTOLOAD (sempre)
+
+    # composer dump-autoload
+
+    ----------------ERRATA ---quando estavamos fazendo as tabelas a de detail ficou errada , mudamos para certa
+    mudamos de detail_plans  PARA details_plan  
+   
+ public function up()
+    {
+        Schema::create('details_plan', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('plan_id');
+            $table->foreign('plan_id')->references('id')->on('plans')->onDelete('cascade');
+
+            $table->String('name');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('details_plan');
+    }
+}
+
+-------- COMO VAMOS RENOVER TODOS OS REGISTROS (impar tabelas) FOI EM BOA HORA 
+---RODAMOS O CAMANDO refresc PARA DELETAR OS REGISTRO E REFAZER AS ESTRUTURAS DA TABELA
+
+# php artisan migrate:refresh
+
+----DEU UM EXCESSÂO, ELE NAO COSEGUI DELETAR TUDO, ESTAO VAMOS RODAR migrate:fresh , PARA DELETAR TODAS AS TABELAS
+
+# php artisan migrate:fresh
+
+-----E VOLTAMOS A DAR O CAMANDO refresh PARA CRIAR AS TABELAS NOVAMANETE, PARA CONERIR
+
+# php artisan migrate:refresh
+
+--------------------------------------------------------------------------OK PERFEITPO , CRIOU NOVAMNETE NOSSAS TABELAS VAZIAS
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+14-----AGORA VAMOS CRIAR OS SEEDER PARA POPULAR O TENENTS e O PLANS------------------
+
+# php artisan make:seeder TenantsTableSeeder
+
+#  php artisan make:seeder PlansTableSeeder
+
+---CONFERIR OS FiLLABLE NA MODEL (O do Tenants nao foi definido, vamos definir)
+
+protected $fillable = [
+        'cnpj', 'name', 'url', 'email', 'logo', 'active',
+        'subscription', 'expires_at', 'subscription_id', 'subscription_active', 'subscription_suspended',
+    ];
+
+
+-----------E CODIFICAR-LOS OS SEEDER...COLOCAR UM REGISTRO NA NOSSA TABELAS PARA TESTAR
+---SEEDER DO PLAN
+ public function run()
+    {
+        //
+        Plan::create([
+            'name' => 'Businers',
+            'url' => 'businers',
+            'price' => 499.99,
+            'description' => 'Plano Empresarial',
+        ]);
+    }
+
+ - ANTES DO SEEDER DO TENANT - VAMOS TER QUE PASSAR O ID DO NOSSO PLAN PARA RECUPERAR-LOS PARA ISSO VAMOS TER QUE CRIAR UM RELACIONAMNETO
+ENTRE AS TABELAS PLANS E TENANTS DE 1:N JA QUE O PLANO PODE TER MUITO TENANTS E O TENANTS SOMENTE UM PLANO
+---VAMOS NA MODEL PLANS  
+ // RELACIONAMENTO PLANO TENANT - 1:N UM PLANO VARIOS TENANTS ----E UM TENANT ESTA RELACIONANDO A UM  PLANO
+        public function tenants() {
+            return $this->hasMany(Tenant::class);
+        } 
+-----APROVEITAMOS E VAMOS NA MODEL TENANT E FAZER UM RELACIONAMNETO 1:N QUE RETORNO TODOS USUARIOS E OUTRO QUE
+RETORNE OS PLANS DE MUITO PARA MUITOS
+// RELACIONAMENTO COM O USUARIO
+    public function users()
+    {
+        return $this->hasMany(User::class);
+    }
+
+     // RELACIONAMENTO COM O PLANO
+
+    public function plan()
+    {
+        return $this->belongsTo(Plan::class);
+    }
+
+}
+--------------SEEDER DO USER 
+public function run()
+    {
+        $tenant = Tenant::first();
+
+        $tenant->users()->create([
+            'name' => 'Carlos',
+            'email' => 'carlos@gmail.com',
+            'password' => bcrypt('casb'),
+
+            ]);   
+
+----SEEDER DO TENANT
+ public function run()
+    {
+        //
+        $plan = Plan::first();
+
+        $plan->tenants()->create([
+            'cnpj' => '23882706000120',
+            'name' => 'EspecializaTi',
+            'url' => 'especializati',
+            'email' => 'carlos@gmail.com',
+        ]);
+
+----AGORA NO DatabaseSeeder.php temos qie LIBERAR EM ORDEM CORRETA        
+
+public function run()
+    {
+       // $this->call(UsersTableSeeder::class);
+       // $this->call(PlansTableSeeder::class);
+        //  $this->call(PlanosTableSeeder::class);
+
+        $this->call([
+            PlansTableSeeder::class,
+            TenantsTableSeeder::class,
+            UsersTableSeeder::class,
+
+
+        ]);
+
+    }
+}
+
+----UFFFA , AGORA SIM VAMOS RODAR NOSSO SEEDER
+# php artisan db:seed
+
+----------------------------------------OK PERFEITO CRIOU CO SUCESSO (confere no phpadmin)
+
+15-----------Cadastrar Novo Tenant pelo Site ----- ASSINATURA ---------------------------- OK PERFEITO MOSTRANDO PLANO
+
+------VANOS CRUAR UMA SESÂO EM SiteControlller --
+CAPTURA UMA PLANO POR SUA url E CONDICIONA SE NAO ENCONTRAR NAO FAZ NADA E SE ENCONTRA CRIA UMA SESSÃO COM PLAN E REDIRECIONA
+PARA View DE REGISTRO
+public function plan($url)
+    {
+        if (!$plan = Plan::where('url', $url)->first()) {
+            return redirect()->back();
+        }
+
+        session()->put('plan', $plan);
+
+        return redirect()->route('register');
+    }
+
+---FAZER A ROTA 
+/* ROTA SO SITE
+    */
+Route::get('/plan/{url}', 'Site\SiteController@plan')->name('plan.subscription');
+Route::get('/', 'Site\SiteController@index')->name('site.home');
+
+
+--IR NA view  stie\pages\home\undex E APONTAR A ROTA (ele esta dentro do LOOp)
+</div>
+                    <div class="pricingTable-signup">
+                    <a href="{{ route('plan.subscription', $plan->url) }}">Assinar</a>
+                    </div>
+                    </div>
+----AO ATUALIZAR E TENTAR "ASSINAR" VAI DAR UM ERRO POIS ELE ESTA MANDANDO PARA ROTA HOME (se vc estiver autenticado)
+---VAMOS NA milddwwd\regdirectifAutentiction e MUDA A REDIRECT
+public function handle($request, Closure $next, $guard = null)
+    {
+        if (Auth::guard($guard)->check()) {
+            return redirect('/admin');
+        }
+
+        return $next($request);
+    }
+
+------------OK ATUALIZANDO ELE JA MANDA PARA view REGISTER (agora vamos ter que customizare o arquivo register pois 
+este arquivo nao tem nada ...confere em resource\views\auth\register.blade.php)
+
+@extends('adminlte::register')
+
+
+VAMOS CUSTOMIZAR ---INDO NA DOCUMENTAÇÂO DO adminLTE (https://github.com/jeroennoten/Laravel-AdminLTE)
+ /*<!---
+8. Customize views
+If you need full control over the provided views, you can publish them:
+
+php artisan adminlte:install --only=main_views
+Now, you can edit the views in resources/views/vendor/adminlte  ---> */
+
+
+-----E RODAR O COMANDO ABAIXO
+
+# php artisan adminlte:install --only=main_views
+
+E VAI GUARDAR EM  resources/views/vendor/adminlte
+
+VAMOS EM resources/views/vendor/adminlteregister.blade.php e customizar colocando o plano que o usuario escolheu
+PARA ISSO VAMOS CAPTURAR A session() PARA IMPRIMIR O PLANO (PELO OBJETO DE PLAN) NOME  (se tiverimprimar se nao valor defauld)
+@section('body')
+    <div class="register-box">
+        <div class="register-logo">
+            <a href="{{ $dashboard_url }}">{!! config('adminlte.logo', '<b>Admin</b>LTE') !!}</a>
+        </div>
+        <div class="card">
+            <div class="card-body register-card-body">
+                <p class="login-box-msg">{{ __('adminlte::adminlte.register_message') }}</p>
+
+                   <p><strong>Plano:</strong> {{ session('plan')->name ?? ''}}</p> 
+
+                <form action="{{ $register_url }}" method="post">
+                    {{ csrf_field() }}
+
+------APROVEITAMOS PARA INSERIR OS CAMPO DE CNPJ e EMPRESA na view
+ <div class="input-group mb-3">
+                        <input type="text" name="cnpj" class="form-control {{ $errors->has('cnpj') ? 'is-invalid' : '' }}" value="{{ old('cnpj') }}"
+                               placeholder="CNPJ" autofocus>
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-user"></span>
+                            </div>
+                        </div>
+
+                        @if ($errors->has('cnpj'))
+                            <div class="invalid-feedback">
+                                <strong>{{ $errors->first('cnpj') }}</strong>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="input-group mb-3">
+                        <input type="text" name="empresa" class="form-control {{ $errors->has('empresa') ? 'is-invalid' : '' }}" value="{{ old('empresa') }}"
+                               placeholder="Empresa" >
+                        <div class="input-group-append">
+                            <div class="input-group-text">
+                                <span class="fas fa-user"></span>
+                            </div>
+                        </div>
+
+                        @if ($errors->has('empresa'))
+                            <div class="invalid-feedback">
+                                <strong>{{ $errors->first('empresa') }}</strong>
+                            </div>
+                        @endif
+                    </div>
+------------------------------------------------------------------------OK PERFEITO
+ ----E MUDAR A ROTA PARA NOSSA register--
+
+ <p><strong>Plano:</strong> {{ session('plan')->name ?? '-' }}</p>
+
+                <form action="{{ route('register') }}" method="post">
+                    {{ csrf_field() }}
+
+
+
+----ATENÇÂO ----SE TENTAMOS INCLUIR EELE VAI PARA O CONTROLE Http\controllers\Auth\registerController E NAO SER MAIS DO MEMSO MODO A INCLUSÂO (create)
+POIS AGORA VAI TER YODO UM PROCESSO, VAI TER QUE IR PLANOS (criar no plano o tenant), NA TENANT (criar na tenant o usuario)
+
+---ANTES O METODO create ESTAVA ASSIM (vamos refazer)
+  return User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+        ]);
+        
+---REFZER PARA FICAR ASSIM ----
+----- CRIAR UM TENANTE ATRAVES DO DO PLAN , PRIMEIRO PEGAR O PLAN E( se nao encontrar o ojeto plan ou session plan redirecone para home , se encontrar 
+) SE ENCONTRA O PLAN, ATRAVES DO RELACIONAMENTO FAZ UM NOVO TENANT e
+ APOS PEGAR O TENANT CRIADO E  VAMOS CRIAR o USER ATRAVES DO TENANT (criar usuarios dentro do tenant)
+
+protected function create(array $data)
+    {
+        if (!$plan = session('plan')) {
+            return redirect()->route('site.home');
+        }
+
+        $tenant= $plan->tenants()->create([
+            'cnpj' => $data['cnpj'],
+            'name' => $data['empresa'],
+            'url' => Str::kebab($data['empresa']),
+            'email' =>$data['email'],
+
+            'subscription' => now(),
+            'expires_at' => now()->addDays(7),
+        ]);
+
+
+        $user = $tenant->users()->create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => bcrypt($data['password']),
+            
+        ]);       
+        return $user;
+    }
+}
+
+
+
+OBS : QUANDO SE TRABALHA COM "Str" TEMOS QUE DECLARAR A CLASSE
+use Illuminate\Support\Str;
+
+---NO MESMO registerController VALIDAMOS O CNPJ E EMPRESA, (falar no final que empresa se refere a colunA NAME)
+ protected function validator(array $data)
+    {
+        return Validator::make($data, [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'cnpj' => ['required', 'unique:tenants'],
+            'empresa' => ['required', 'unique:tenants, name']
+        ]);
+    }
+
+error----------------------------------------------------NÃO ESTA INDO, DEVE SER AS VALIDA~ÇOES ..NAO PASSOU COM AS 
+VALIDAÇÊS(como nao se tivesse o campo name na tenant),
+TIRANDO AS VALIDAÇÕES TAMBEM NAO PASSOU (com index=name de User indefinido) POREM INCLUI NO BD
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ErrorException
+Undefined index: name
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+
+
+
+------------ORGANIZAR O registerController CRIANDO UMA CLASSE DE SERVIÇO ---------------
+
+------VAMOS EM App E CRIAMOS UM DIRETORIO PARA SERVIÇO APP\Services e DENT|RO DELE VAMOS CRIAR UM ARQUIVO DE SERVIÇO
+TenantService.php E CODIFICAR_LA (QUEBRANDO O CREAT EM VARIAS PARTES)  ---ISSO VAI TIRAR PARTE DA RESPONSABILDADE 
+DO registerController
+
+---VAMOS CRUIR UM make - e nele especifica o que vamos recebere distribuir a criação do tenant e usauarios eem 
+metodos store diferentes
+
+<?php
+
+namespace App\Services;
+use Illuminate\Support\Str;
+use App\Models\Plan;
+use App\Repositories\Contracts\TenantRepositoryInterface;
+
+class TenantService
+{
+   private $plan, $data = [];
+    // private $repository;
+ /*
+    public function __construct(TenantRepositoryInterface $repository)
+    {
+        $this->repository = $repository;
+    }
+
+    public function getAllTenants(int $per_page)
+    {
+        return $this->repository->getAllTenants($per_page);
+    }
+
+    public function getTenantByUuid(string $uuid)
+    {
+        return $this->repository->getTenantByUuid($uuid);
+    } 
+ */
+    public function make(Plan $plan, array $data)
+    {
+        $this->plan = $plan;
+        $this->data = $data;
+
+        $tenant = $this->storeTenant();
+
+        $user = $this->storeUser($tenant);
+
+        return $user;
+    }
+
+    public function storeTenant()
+    {
+        $data = $this->data;
+
+        return $this->plan->tenants()->create([
+            'cnpj' => $data['cnpj'],
+            'name' => $data['empresa'],
+            'email' => $data['email'],
+            'url' => Str::kebab($data['empresa']),
+            'subscription' => now(),
+            'expires_at' => now()->addDays(7),
+        ]);
+    }
+
+    public function storeUser($tenant)
+    {
+        $user = $tenant->users()->create([
+            'name' => $this->data['name'],
+            'email' => $this->data['email'],
+            'password' => bcrypt($this->data['password']),
+        ]);
+
+        return $user;
+    }
+   
+}
+
+E NO registerController ALIVIAR O METODO create
+
+protected function create(array $data)
+    {
+        if (!$plan = session('plan')) {
+            return redirect()->route('site.home');
+        }
+
+        /*
+        $tenant= $plan->tenants()->create([
+            'cnpj' => $data['cnpj'],
+            'name' => $data['empresa'],
+            'url' => Str::kebab($data['empresa']),
+            'email' =>$data['email'],
+
+            'subscription' => now(),
+            'expires_at' => now()->addDays(7),
+        ]);
+
+
+        $user = $tenant->users()->create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => bcrypt($data['password']),
+            
+        ]);     
+          
+            return $user;
+                
+                 */
+
+                
+                 $tenantService = app(TenantService::class);
+                 $user = $tenantService->make($plan, $data);
+                 // event(new TenantCreated($user));
+                 return $user;
+
+    }
+}
+
+
+Error ----------------COMO NAO MUDOU NADA APENAS DIVIDIU O TRABALHO CONTINIUA O MESMO ERRO
+INCLUIR MAS DIZ QUE O INDEX  name É INDEFINIDO
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+ErrorException
+Undefined index: name
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+
+--AULA 5 do 9 --pULAR
+
+--------------------CONSERTAMOS  AS VALIDAÇÔES
+ protected function validator(array $data)
+    {
+        return Validator::make($data, [
+            'name' => ['required', 'string', 'min:3', 'max:255'],
+            'email' => ['required', 'string', 'email', 'min:3', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:6', 'max:16', 'confirmed'],
+            'empresa' => ['required', 'string', 'min:3', 'max:255', 'unique:tenants,name'],
+            'cnpj' => ['required', 'numeric', 'digits:14', 'unique:tenants'],
+        ]);
+
+
+
+16-----------CRIAR USUARIOS  (todo usuario estara ligado a uma empresa) ----------------------------
+OBS : semelhante ao do PLANO o que muda é o metodo create que vai colocar no store id da tenanat (empresa)
+---VANMOS FAZER O LINK NA FRONTEND , VAMOS EM config\adminLTE
+   ['header' => 'account_settings'],
+        
+        [
+            'text' => 'profile',
+            'url'  => 'admin/permissions',
+            'icon' => 'fas fa-key',
+        ],
+        [
+            'text' => 'Usuarios',
+            'url'  => 'admin/users',
+            'icon' => 'fas fa-fw fa-user',
+        ],
+
+
+---VAMOS FAZER A ROTA 
+/**
+     * Routes Users
+     */
+    Route::any('users/search', 'UserController@search')->name('users.search');
+    Route::resource('users', 'UserController');
+
+
+-----VAMOS CRIAR AGORA O NOSSO UsersController  Dentro do diretorio Http\Admin   (FORA DO ACL)
+
+# php artisan make:controller Admin\UserController  
+
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUpdateUser;
+use App\Models\User;
+use Illuminate\Http\Request;
+
+class UserController extends Controller
+{
+    
+
+    protected $repository;
+
+    public function __construct(User $user)
+    {
+        $this->repository = $user;
+
+     //   $this->middleware(['can:users']);
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+       // $users = $this->repository->latest()->tenantUser()->paginate();
+       $users = $this->repository->latest()->paginate();
+
+        return view('admin.pages.users.index', compact('users'));
+    }
+
+    /*   
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+     
+    public function create()
+    {
+        return view('admin.pages.users.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \App\Http\Requests\StoreUpdateUser  $request
+     * @return \Illuminate\Http\Response
+     */
+     
+
+    public function store(StoreUpdateUser $request)
+    {
+        public function store(StoreUpdateUser $request)
+    {
+        $data = $request->all();
+        $data['tenant_id'] = auth()->user()->tenant_id;
+       // $data['password'] = bcrypt($data['password']);  //encrypt password
+
+        $this->repository->create($data);
+  
+
+        return redirect()->route('users.index');
+    }
+    
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    
+
+    public function show($id)
+    {
+
+
+      //  if (!$user = $this->repository->tenantUser()->find($id)) {
+
+        if (!$user = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.users.show', compact('user'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+    public function edit($id)
+    {
+      
+        //  if (!$user = $this->repository->tenantUser()->find($id)) {
+
+            if (!$user = $this->repository->find($id)) {
+                return redirect()->back();
+        }
+
+        return view('admin.pages.users.edit', compact('user'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \App\Http\Requests\StoreUpdateUser  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+    public function update(StoreUpdateUser $request, $id)
+    {
+       //  if (!$user = $this->repository->tenantUser()->find($id)) {
+
+        if (!$user = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $data = $request->only(['name', 'email']);
+
+        if ($request->password) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->route('users.index');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+    public function destroy($id)
+    {
+       //  if (!$user = $this->repository->tenantUser()->find($id)) {
+
+        if (!$user = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $user->delete();
+
+        return redirect()->route('users.index');
+    }
+
+    /**
+     * Search results
+     *
+     * @param  Request $request
+     * @return \Illuminate\Http\Response
+     */
+
+
+    public function search(Request $request)
+    {
+        $filters = $request->only('filter');
+
+        $users = $this->repository
+                            ->where(function($query) use ($request) {
+                                if ($request->filter) {
+                                    $query->orWhere('name', 'LIKE', "%{$request->filter}%");
+                                    $query->orWhere('email', $request->filter);
+                                }
+                            })
+                            ->latest()
+                            ->tenantUser()
+                            ->paginate();
+
+        return view('admin.pages.users.index', compact('users', 'filters'));
+    }
+
+}
+
+CONCOMITANTE CRIAREMOS UM RELACIONAMENTO EM 
+MODEL\user COM TENANT (para retornar um objeto de user)
+
+/**
+     * RELACIONAMNETO USER Tenant
+     */
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+
+UserController e RElacionamneto CRIADOS EM SEGUINDA OU MESMO ANTES DE CODIFICAR O UserController VAMOS CRIAR UM MODO
+REQUEST StoreUpdateUser PARA VALDAÇÃO; (fica no diretorio request) 
+
+# php artisan make:request StoreUpdateUser
+
+$id = $this->segment(3);
+
+        $rules = [
+            'name' => ['required', 'string', 'min:3', 'max:255'],
+            'email' => ['required', 'string', 'email', 'min:3', 'max:255', "unique:users,email,{$id},id"],
+            'password' => ['required', 'string', 'min:6', 'max:16'],
+        ];
+
+     
+        if ($this->method() == 'PUT') {
+            $rules['password'] = ['nullable', 'string', 'min:6', 'max:16'];
+        }
+       
+        return $rules;
+         
+    }
+
+NÃO ESQUECER DE TROCAR PARA true, PEGAR O id PELO SEGMENTO DO ENDEREÇO
+
+---CRIAR AS VIEW DE USER  resource\view\Admin\pages CRIAR DIRETORIO user....TAMBEM VAMOS CRIAR UM DIRETORIO 
+DE PARTIÇÂO(partials\form.blade.php) PODEMOS PARTIR OU NAO...VOU PARTIR (se não partir coloca o form no corpo das views
+- no nosso caso create e edit)
+LEMBRAR DE INCLUIR PELO METODO @include (@include('admin.pages.users._partials.form'))
+
+-------------users\partials\form.blade.php
+@include('admin.includes.alerts')
+
+@csrf
+
+<div class="form-group">
+    <label>Nome:</label>
+<input type="text" name="name" placeholder="Nome" class="form-control" value="{{ $user->name ?? old('name') }}">
+<div class="form-group">
+    <label>Email:</label>
+<input type="text" name="name" placeholder="Email" class="form-control" value="{{ $user->email ?? old('email') }}">
+</div>
+</div>
+<div class="form-group">
+    <button type="submit" class="btn btn-info">Enviar</button>
+</div>
+
+
+---------------index.blade.php
+@extends('adminlte::page')
+
+@section('title', 'Usuários')
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('users.index') }}" class="active">Usuários</a></li>
+    </ol>
+
+    <h1>Usuários <a href="{{ route('users.create') }}" class="btn btn-dark">ADD</a></h1>
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-header">
+            <form action="{{ route('users.search') }}" method="POST" class="form form-inline">
+                @csrf
+                <input type="text" name="filter" placeholder="Filtrar:" class="form-control" value="{{ $filters['filter'] ?? '' }}">
+                <button type="submit" class="btn btn-dark">Filtrar</button>
+            </form>
+        </div>
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>E-mail</th>
+                        <th width="270">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($users as $user)
+                        <tr>
+                            <td>{{ $user->name }}</td>
+                            <td>{{ $user->email }}</td>
+                            <td style="width=10px;">
+                                <a href="{{ route('users.edit', $user->id) }}" class="btn btn-info">Edit</a>
+                                <a href="{{ route('users.show', $user->id) }}" class="btn btn-warning">VER</a>
+                                <a href="{{ route('users.roles', $user->id) }}" class="btn btn-info" title="Cargos"><i class="fas fa-address-card"></i> Cargos</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $users->appends($filters)->links() !!}
+            @else
+                {!! $users->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+
+---show.blade.php
+@extends('adminlte::page')
+
+@section('title', "Detalhes do usuário {$user->name}")
+
+@section('content_header')
+    <h1>Detalhes do usuário <b>{{ $user->name }}</b></h1>
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <ul>
+                <li>
+                    <strong>Nome: </strong> {{ $user->name }}
+                </li>
+                <li>
+                    <strong>E-mail: </strong> {{ $user->email }}
+                </li>
+                <li>
+                    <strong>Empresa: </strong> {{ $user->tenant->name }}
+                </li>
+            </ul>
+
+            @include('admin.includes.alerts')
+
+            <form action="{{ route('users.destroy', $user->id) }}" method="POST">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> DELETAR O USUÁRIO {{ $user->name }}</button>
+            </form>
+        </div>
+    </div>
+@endsection
+
+
+----------create.blade.php
+@extends('adminlte::page')
+
+@section('title', 'Cadastrar Novo Usuário')
+
+@section('content_header')
+    <h1>Cadastrar Novo Usuário</h1>
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <form action="{{ route('users.store') }}" class="form" method="POST">
+                @csrf
+
+                @include('admin.pages.users.partials.form')
+            </form>
+        </div>
+    </div>
+@endsection
+
+----------edit.blade.php
+@extends('adminlte::page')
+
+@section('title', "Editar o usuário {$user->name}")
+
+@section('content_header')
+    <h1>Editar o usuário {{ $user->name }}</h1>
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <form action="{{ route('users.update', $user->id) }}" class="form" method="POST">
+                @csrf
+                @method('PUT')
+
+                @include('admin.pages.users.partials.form')
+            </form>
+        </div>
+    </div>
+@endsection
+
+------------------------------------------------------------------------OK PERFEITO (chegou no formulario User)
+
+----POR FIM LEMBRAR QUE NA NOSSA MODEL\User LIBERAR O tenant_id, POIS TAMBEM VAMOS USAR-LO (INCLUIR)
+
+protected $fillable = [
+        'name', 'email', 'password', 'tenant_id'
+    ];
+
+--------------------------------------------------------------------OK PERFEITO INCLUIR NOVO USUARIO
+
+----PARA EDITAR E ELE NAO EXIGIR A SENHA (vai ficar duas regras deiferentes para cadastrar (METODO POST) ele exigi a 
+senha  e para editar (METODO PUT) não)
+COLOCAREMOS UMA CONDIÇÂO no final do StoreUpdateUser
+
+  $rules = [
+            'name' => ['required', 'string', 'min:3', 'max:255'],
+            'email' => ['required', 'string', 'email', 'min:3', 'max:255', "unique:users,email,{$id},id"],
+            'password' => ['required', 'string', 'min:6', 'max:16'],
+        ];
+ 
+        if ($this->method() == 'PUT') {
+            $rules['password'] = ['nullable', 'string', 'min:6', 'max:16'];
+        }
+       
+        return $rules;
+         
+    }
+}
+
+---E EM NOSSO UsersController NO METODO store PASSAR O passaord CRIPTOGRAFADO TAMBEM (Ja cadastra usuario
+criptografando a senha)
+
+ public function store(StoreUpdateUser $request)
+    {
+        $data = $request->all();
+        $data['tenant_id'] = auth()->user()->tenant_id;
+        $data['password'] = bcrypt($data['password']);  //encrypt password
+
+--------------------------------------O METODO update DO NOSSO UserController DEVE ESTA CODIFICADA ASSIM
+
+public function update(StoreUpdateUser $request, $id)
+    {
+       //  if (!$user = $this->repository->tenantUser()->find($id)) {
+
+        if (!$user = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $data = $request->only(['name', 'email']);
+
+        if ($request->password) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->route('users.index');
+    }
+
+----------------- RECAPPTULANDO  -  NOSSA UserController ESTA ASIM     
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUpdateUser;
+use App\Models\User;
+use Illuminate\Http\Request;
+
+class UserController extends Controller
+{
+    
+
+    protected $repository;
+
+    public function __construct(User $user)
+    {
+        $this->repository = $user;
+
+     //   $this->middleware(['can:users']);
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+       // $users = $this->repository->latest()->tenantUser()->paginate();
+       $users = $this->repository->latest()->paginate();
+
+        return view('admin.pages.users.index', compact('users'));
+    }
+
+    /*   
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+     
+    public function create()
+    {
+        return view('admin.pages.users.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \App\Http\Requests\StoreUpdateUser  $request
+     * @return \Illuminate\Http\Response
+     */
+     
+
+    public function store(StoreUpdateUser $request)
+    {
+        $data = $request->all();
+        $data['tenant_id'] = auth()->user()->tenant_id;
+        $data['password'] = bcrypt($data['password']);  //encrypt password
+
+        $this->repository->create($data);
+       //  $this->repository->create();
+
+        return redirect()->route('users.index');
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    
+
+    public function show($id)
+    {
+
+
+      //  if (!$user = $this->repository->tenantUser()->find($id)) {
+
+        if (!$user = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.users.show', compact('user'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+    public function edit($id)
+    {
+      
+        //  if (!$user = $this->repository->tenantUser()->find($id)) {
+
+            if (!$user = $this->repository->find($id)) {
+                return redirect()->back();
+        }
+
+        return view('admin.pages.users.edit', compact('user'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \App\Http\Requests\StoreUpdateUser  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+    public function update(StoreUpdateUser $request, $id)
+    {
+       //  if (!$user = $this->repository->tenantUser()->find($id)) {
+
+        if (!$user = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $data = $request->only(['name', 'email']);
+
+        if ($request->password) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->route('users.index');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+    public function destroy($id)
+    {
+       //  if (!$user = $this->repository->tenantUser()->find($id)) {
+
+        if (!$user = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $user->delete();
+
+        return redirect()->route('users.index');
+    }
+
+    /**
+     * Search results
+     *
+     * @param  Request $request
+     * @return \Illuminate\Http\Response
+     */
+
+
+    public function search(Request $request)
+    {
+        $filters = $request->only('filter');
+
+        $users = $this->repository
+                            ->where(function($query) use ($request) {
+                                if ($request->filter) {
+                                    $query->orWhere('name', 'LIKE', "%{$request->filter}%");
+                                    $query->orWhere('email', $request->filter);
+                                }
+                            })
+                            ->latest()
+                         //    ->tenantUser()
+                            ->paginate();
+
+        return view('admin.pages.users.index', compact('users', 'filters'));
+    }
+
+}
+
+--------------------------ADD\edit\deletando --- Filtrando so em sequencia exata  ---OK PERFEITO
+
+17-----------VAMOS ESPECIFICAR AQUI O MODO USO PARA NOSSO PROJETO (atraves de scopes globais) PODE SER ADICIONAL EM
+OUTROS PROJETOS   
+VAMOS NO MODEL\USER e INSERIMOS 
+EM CIMA DECLARA CLASSE
+use Illuminate\Database\Eloquent\Builder;
+
+---E CRIA O SCOPE
+
+    /**
+     * Scope a query to only users by tenant
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeTenantUser(Builder $query)
+    {
+        return $query->where('tenant_id', auth()->user()->tenant_id);
+    }
+---NOSSA MODEL\User vai ficar assim ate AQUI
+
+<?php
+
+namespace App\Models;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Auth;
+
+class User extends Authenticatable
+{
+    use Notifiable;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name', 'email', 'password', 'tenant_id'
+    ];
+
+    /**
+     * The attributes that should be hidden for arrays.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+    ];
+
+
+     /**
+     * Scope a query to only users by tenant
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeTenantUser(Builder $query)
+    {
+        return $query->where('tenant_id', auth()->user()->tenant_id);
+    }
+
+    
+    /**
+    *  RELACIONAMNETO USER Tenant
+    */
+   public function tenant()
+   {
+       return $this->belongsTo(Tenant::class);
+   }
+
+
+}
+
+
+---ESTAO VANOS NA UsersController E LIBERAMOS A QUERY PELO SCOPE (latest- >tenantUser() )
+------NOS METODO INDEX, shoew, edit, update , detroy e search MODIFICANDO NOSSSA UsersController PARA:
+ public function index()
+    <?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUpdateUser;
+use App\Models\User;
+use Illuminate\Http\Request;
+
+class UserController extends Controller
+{
+    
+
+    protected $repository;
+
+    public function __construct(User $user)
+    {
+        $this->repository = $user;
+
+     //   $this->middleware(['can:users']);
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+       $users = $this->repository->latest()->tenantUser()->paginate();
+      //  $users = $this->repository->latest()->paginate();
+
+        return view('admin.pages.users.index', compact('users'));
+    }
+
+    /*   
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+     
+    public function create()
+    {
+        return view('admin.pages.users.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \App\Http\Requests\StoreUpdateUser  $request
+     * @return \Illuminate\Http\Response
+     */
+     
+
+    public function store(StoreUpdateUser $request)
+    {
+        $data = $request->all();
+        $data['tenant_id'] = auth()->user()->tenant_id;
+        $data['password'] = bcrypt($data['password']);  //encrypt password
+
+        $this->repository->create($data);
+       //  $this->repository->create();
+
+        return redirect()->route('users.index');
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    
+
+    public function show($id)
+    {
+
+
+       if (!$user = $this->repository->tenantUser()->find($id)) {
+
+       //  if (!$user = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.users.show', compact('user'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+    public function edit($id)
+    {
+      
+         if (!$user = $this->repository->tenantUser()->find($id)) {
+
+          //   if (!$user = $this->repository->find($id)) {
+                return redirect()->back();
+        }
+
+        return view('admin.pages.users.edit', compact('user'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \App\Http\Requests\StoreUpdateUser  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+    public function update(StoreUpdateUser $request, $id)
+    {
+        if (!$user = $this->repository->tenantUser()->find($id)) {
+
+        // if (!$user = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $data = $request->only(['name', 'email']);
+
+        if ($request->password) {
+            $data['password'] = bcrypt($request->password);
+        }
+
+        $user->update($data);
+
+        return redirect()->route('users.index');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+
+    public function destroy($id)
+    {
+         if (!$user = $this->repository->tenantUser()->find($id)) {
+
+       // if (!$user = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $user->delete();
+
+        return redirect()->route('users.index');
+    }
+
+    /**
+     * Search results
+     *
+     * @param  Request $request
+     * @return \Illuminate\Http\Response
+     */
+
+
+    public function search(Request $request)
+    {
+        $filters = $request->only('filter');
+
+        $users = $this->repository
+                            ->where(function($query) use ($request) {
+                                if ($request->filter) {
+                                    $query->orWhere('name', 'LIKE', "%{$request->filter}%");
+                                    $query->orWhere('email', $request->filter);
+                                }
+                            })
+                            ->latest()
+                           ->tenantUser()
+                            ->paginate();
+
+        return view('admin.pages.users.index', compact('users', 'filters'));
+    }
+
+}
+
+--------------------------------------------------------------------------OK PERFEITO (agora cada usario so usa seu tenant cadastro)
+
+18------------------------------------VAMOS CRIAR NOSSAS CATEGORIAS (MAIS AUTOMATIZADA - vinculo entre entre a categoria e o tenant)-----------------------
+
+------VAMOS CRIAR A MODEL
+# php artisan make:model Models\Category -m
+
+---VAMOS NA NOSSA Category MIGRATION E CODIFICADA
+Schema::create('categories', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('tenant_id');
+         //    $table->uuid('uuid');
+            $table->string('name');
+            $table->string('url');
+            $table->text('description');
+            $table->timestamps();
+
+            $table->foreign('tenant_id')
+                        ->references('id')
+                        ->on('tenants')
+                        ->onDelete('cascade');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('categories');
+    }
+}
+
+----ASSIM COM O NOSSO fillable NA MODEL Category
+class Category extends Model
+{
+    //
+   // use TenantTrait;
+
+    protected $fillable = ['name', 'url', 'description'];
+
+   /* public function products()
+    {
+        return $this->belongsToMany(Product::class);
+    }
+     */
+}
+
+--------VAMOS AGORA RODAR A TABELA (ja que a migration esta criada)
+--OBS--NÃO ESQUECE DE SALVAR ANTES OS ARQUIVOS
+
+# php artisan migrate
+
+---------------------------------------------OK PERFEITO (criou tabela no phpadmin)
+---VAMOS em config\adminLte E CONFIGURAMOS NOSSO MENU
+  [
+            'text' => 'Categoria',
+            'url'  => 'admin/categories',
+            'icon' => 'fas fa-layer-group', 
+        ],
+
+-----FARENOS NOSSAS ROTAS ---
+
+ /**
+     * Routes Categories
+     */
+    Route::any('categories/search', 'CategoryController@search')->name('categories.search');
+    Route::resource('categories', 'CategoryController');
+
+-----VAMOS CRIAR O CONTROLLER DENTRO DE ADMIN COM O NONE DE CategoryController COM PARAMETRO --resource (VEM PRE ENCHIDO)
+
+ # php artisan make:controller Admin\CategoryController --resource
+
+----FAREMOS PRIMEIRAMENTE O METODO CONCTRUTOR E O METO INDEX PARA MOSTRAR NOSSOS REGISTRO (listagem)
+
+class CategoryController extends Controller
+{
+    private $repository;
+
+    public function __construct(Category $category)
+    {
+        $this->repository = $category;
+
+        //  $this->middleware(['can:categories']);
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $categories = $this->repository->latest()->paginate();
+
+        return view('admin.pages.categories.index', compact('categories'));
+    }
+ 
+------PASSA NOSSA VARIAVEL categories PARA NOSSA View PELO compact
+------PARA TESTAR VAMOS CRIAR NOSSAS View
+COMEÇANDO PELA INDEX, CREATE, EDIT, SHOW e partials\FORM NO DIRETORIOresources\views\admin\pages\categories.
+---USAREMOS O PARTIALS (divisão) DO FORMULARIO COMUN AS view
+
+-------INDEX
+@extends('adminlte::page')
+
+@section('title', 'Categorias')
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('categories.index') }}" class="active">Categorias</a></li>
+    </ol>
+
+    <h1>Categorias <a href="{{ route('categories.create') }}" class="btn btn-dark">ADD</a></h1>
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-header">
+            <form action="{{ route('categories.search') }}" method="POST" class="form form-inline">
+                @csrf
+                <input type="text" name="filter" placeholder="Filtrar:" class="form-control" value="{{ $filters['filter'] ?? '' }}">
+                <button type="submit" class="btn btn-dark">Filtrar</button>
+            </form>
+        </div>
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Descrição</th>
+                        <th width="150">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($categories as $category)
+                        <tr>
+                            <td>{{ $category->name }}</td>
+                            <td>{{ $category->description }}</td>
+                            <td style="width=10px;">
+                                <a href="{{ route('categories.edit', $category->id) }}" class="btn btn-info">Edit</a>
+                                <a href="{{ route('categories.show', $category->id) }}" class="btn btn-warning">VER</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $categories->appends($filters)->links() !!}
+            @else
+                {!! $categories->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+-------------------CREATE
+@extends('adminlte::page')
+
+@section('title', 'Cadastrar Nova Categoria')
+
+@section('content_header')
+    <h1>Cadastrar Nova Categoria</h1>
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <form action="{{ route('categories.store') }}" class="form" method="POST">
+                @csrf
+
+                @include('admin.pages.categories.partials.form')
+            </form>
+        </div>
+    </div>
+@endsection
+-----------------------EDIT
+@extends('adminlte::page')
+
+@section('title', "Editar a categoria {$category->name}")
+
+@section('content_header')
+    <h1>Editar a categoria {{ $category->name }}</h1>
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <form action="{{ route('categories.update', $category->id) }}" class="form" method="POST">
+                @csrf
+                @method('PUT')
+
+                @include('admin.pages.categories.partials.form')
+            </form>
+        </div>
+    </div>
+@endsection
+------------------------------------SHOW
+@extends('adminlte::page')
+
+@section('title', "Detalhes da categoria {$category->name}")
+
+@section('content_header')
+    <h1>Detalhes da categoria <b>{{ $category->name }}</b></h1>
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <ul>
+                <li>
+                    <strong>Nome: </strong> {{ $category->name }}
+                </li>
+                <li>
+                    <strong>URL: </strong> {{ $category->url }}
+                </li>
+                <li>
+                    <strong>Descrição: </strong> {{ $category->description }}
+                </li>
+            </ul>
+
+            @include('admin.includes.alerts')
+
+            <form action="{{ route('categories.destroy', $category->id) }}" method="POST">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> DELETAR A CATEGORIA {{ $category->name }}</button>
+            </form>
+        </div>
+    </div>
+@endsection
+
+-------------------------------------------------partials\FORM
+@include('admin.includes.alerts')
+
+<div class="form-group">
+    <label>Nome:</label>
+    <input type="text" name="name" class="form-control" placeholder="Nome:" value="{{ $category->name ?? old('name') }}">
+</div>
+<div class="form-group">
+    <label>Descrição:</label>
+    <textarea name="description" ols="30" rows="5" class="form-control">{{ $category->description ?? old('description') }}</textarea>
+</div>
+<div class="form-group">
+    <button type="submit" class="btn btn-dark">Enviar</button>
+</div>
+
+-------INDEX FEITO JA ACESSANDO A view Categorias
+
+
+------COMEÇANDO A AUTOMATIZAÇÂO SEM ESTA PUXANO O tenant-id
+---------VAMOS INCLUIR UM REGISTRO (cadstrar) NA NOSSA CATEGORIA, PARA ISSO VAMOS TRABALHAR NO METODO create
+em CategoryController
+
+----VAMOS APENAS EXIBIR NOSSA view DE CREATE, SEM PASSA NADA
+
+ public function create()
+    {
+        return view('admin.pages.categories.create');
+    }
+
+---E ANTES DE IRMOS PARA O METODO STORE (onde realmente cadastar) VAMOS FAZE NOSSA CLASSE(request) DE VALIDAÇÂO , CRIANDO 
+UM StoreUpdateCategory
+
+# php artisan make:request StoreUpdateCategory
+  public function rules()
+    {
+       $id = $this->segment(3);
+       //$id = $this->segment($id); 
+
+ //
+        return [
+            'name' => ['required', 'min:3', 'max:255', "unique:categories,name,{$id},id"],
+           /* 'name' => [
+                'required',
+                'min:3',
+                'max:255',
+                new UniqueTenant('categories', $id),
+            ], */
+            'description' => ['required', 'min:3', 'max:10000'],
+        ];
+       
+    }
+}
+-----VAI MUDAR
+
+---E TAMBEM TEMOS QUE CRIAR UM OBSERVER COM O NOME DE CategoryObserver
+
+# php artisan make:observe CategoryObserver
+---NAO ESQUECER DE IMPORTAR  - 
+use Illuminate\Support\Str; 
+---------------------------------FICA ASSIM
+<?php
+
+namespace App\Observers;
+use Illuminate\Support\Str;
+use App\Models\Category;
+
+class CategoryObserver
+{
+    /**
+     * Handle the plan "creating" event.
+     *
+     * @param  \App\Models\Category  $plan
+     * @return void
+     */
+    public function creating(Category $category)
+    {
+        $category->url = Str::kebab($category->name);
+        $category->uuid = Str::uuid();
+    }
+
+    /**
+     * Handle the plan "updating" event.
+     *
+     * @param  \App\Models\Category  $category
+     * @return void
+     */
+    public function updating(Category $category)
+    {
+        $category->url = Str::kebab($category->name);
+    }
+}
+
+----NAO BASTA CRIAR O OBSERVE TEMOS QUE IR NO PROVIDERS (AppServiceProvider) E DECLARAR A CLASSE OBSERVER EM BOOT 
+public function boot()
+    {
+        Schema::defaultStringLength(191);
+       // Schema::defaultStringlength(191);
+       Plan::observe(PlanObserver::class);
+       // Tenant::observe(TenantObserver::class);
+       Category::observe(CategoryObserver::class);
+    }
+
+---------------------------------AINDA NAO FOMOS EM STORE (ainda nao concluimos)--------------IMPORTANTE
+
+
+_____VAMOS CRIAR UM DIRETORIO App\TENANT E DENTRO DELE UMA CLASSE ManagerTenant
+TEREMOS UM METODO QUE RECUPERA O id DO TENANT (identificador do tenanyt), TAMBEM UM FUN^ÇÃO PARA RETORNAR O RELACIONAMENTO
+DO USUARIO COM O TENANT E DEFINIR ADMISTARDORES(pelos email)
+<?php
+
+namespace App\Tenant;
+
+use App\Models\Tenant;
+
+class ManagerTenant
+{
+   
+   // public function getTenantIdentify()  
+   public function getTenantIdentify(): int 
+    {
+      //  return auth()->check() ? auth()->user()->tenant_id : '';
+                return auth()->user()->tenant_id;
+    }
+
+    
+   // public function getTenant()
+         public function getTenant(): Tenant
+    {
+       // return auth()->check() ? auth()->user()->tenant : '';
+       return auth()->user()->tenant;
+
+    }
+//  METODO IDENTIFICA SE É ADMIN OU NAO
+    public function isAdmin(): bool
+    {
+        return in_array(auth()->user()->email, config('tenant.admins'));
+    }
+
+    
+}
+ ---xxxxxxxxxxxxxxxxVAI MUDAR PRA 
+
+<?php
+
+namespace App\Tenant;
+
+use App\Models\Tenant;
+
+class ManagerTenant
+{
+    public function getTenantIdentify()
+    {
+        return auth()->check() ? auth()->user()->tenant_id : '';
+    }
+
+    public function getTenant()
+    {
+        return auth()->check() ? auth()->user()->tenant : '';
+    }
+
+    public function isAdmin(): bool
+    {
+        return in_array(auth()->user()->email, config('tenant.admins'));
+    }
+}
+
+--------xxxxxxxxx PULOU PARA FAZER UM ADMISTRADOR (para o metodo acima) AI FOI EM config (DIRETORIO) E CRIOU UM ARQUINO tenant.php PARA COLOCAR 
+TODAS AS CONFIGURAÇÔES DE TENANT (centralizar)
+<?php
+
+return [
+
+    /**
+     * Admins e-mails
+     */
+    'admins' => [
+        'carlos@especializati.com.br',
+        'admin@especializati.com.br',
+    ],
+
+];
+
+
+------ VAMOS CRIAR OUTRO OBSERVERS NO DIRETORIO EM app\Tenant\Observers E DENTRO DELE CRIAR UMA AQUIVO TenantObserver.php 
+
+<?php
+
+namespace App\Tenant\Observers;
+use Illuminate\Support\Str;
+use App\Tenant\ManagerTenant;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
+
+class TenantObserver
+{
+    /**
+     * Handle the plan "creating" event.
+     *
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @return void
+     */
+    public function creating(Model $model)
+    {
+        $managerTenant = app(ManagerTenant::class);
+                      
+      //  $identify = $managerTenant->getTenantIdentify();
+        $model->tenant_id = $managerTenant->getTenantIdentify();
+
+/* 
+        if ($identify)
+            $model->tenant_id = $identify;
+
+            */
+    }
+
+}    
+        
+ 
+ 
+-------------------------------PARA USAR A CLASSE  TenantObserver VAMOS TER QUE IR NA MODEL category.php
+E RESCREVER O METODO Boot (NA versão 7 - E Booted)
+
+<?php
+
+namespace App\Models;
+
+use App\Tenant\Observers\TenantObserver;
+use Illuminate\Database\Eloquent\Model;
+
+class Category extends Model
+{
+    //
+   // use TenantTrait;
+
+    protected $fillable = ['name', 'url', 'description'];
+
+    protected static function boot(){
+            parent::boot();
+            static::observe(TenantObserver::class) ;   
+    }
+
+/*
+    public function products()
+    {
+        return $this->belongsToMany(Product::class);
+    }
+    */
+}
+
+
+---Isso fa com que, QUANDO for incluir uma categoria, incluir tabela na coluna o id do usuario logado
+
+-------------------------OK PERFEITO, (esta incluido com o id da tenant ---atrelado)
