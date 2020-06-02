@@ -6979,5 +6979,945 @@ class Category extends Model
 
 ---Isso fa com que, QUANDO for incluir uma categoria, incluir tabela na coluna o id do usuario logado
 
--------------------------OK PERFEITO, (esta incluido com o id da tenant ---atrelado)
+-------------------------OK PERFEITO, (esta incluido com o id da tenant ---atrelado), porem nao tem filtro esta 
+vindo todas as categorias 
+
+------------------APLICAR FILTRO CATEGORIA-------------------------------------------------------------------------
+VAMOS CRIAR UM DIRETORIO Scopes EM app\Tenant e NELE CRIAR UM ARQUIVO TenantScope.php ONDE FILTRA PELA coluna
+tenant_id e COMPARA COM ID AUTENTICADO QUE PEGAMOS EM NOSSO METODO getTenantIdentify (FEITO EM tenanatObserve)
+
+<?php
+
+namespace App\Tenant\Scopes;
+
+use App\Tenant\ManagerTenant;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Scope;
+
+class TenantScope implements Scope
+{
+    /**
+     * Apply the scope to a given Eloquent query builder.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $builder
+     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @return void
+     */
+    public function apply(Builder $builder, Model $model)
+    {
+        // $identify = app(ManagerTenant::class)->getTenantIdentify();
+
+             
+            $builder->where('tenant_id', app(ManagerTenant::class)->getTenantIdentify());
+
+
+        /*
+        
+        if ($identify)
+            $builder->where('tenant_id', $identify);
+
+           */ 
+    }
+}
+
+
+----------------------------VAMOS CRIAR OUTRO DIRETORIO DENTRO DE app\Tenant\Trails e CRIAR UM ARQUIVO
+TenantTrail.php PARA POASSAR NOSO SCOPE (TenantScope)
+
+<?php
+
+namespace App\Tenant\Traits;
+
+use App\Tenant\Observers\TenantObserver;
+use App\Tenant\Scopes\TenantScope;
+
+trait TenantTrait
+{
+    /**
+     * The "booting" method of the model.
+     *
+     * @return void
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::observe(TenantObserver::class);
+
+        static::addGlobalScope(new TenantScope);
+    }
+}
+
+---------------------------------VAMOS TERMINAR NOSSO CategoryController SENDO QUE O METODO Store FICOU ASIM
+---------------------Store
+  public function store(StoreUpdateCategory $request)
+    {
+        $this->repository->create($request->all());
+
+        return redirect()->route('categories.index');
+    }
+
+--------------------METODO SHOW (recupera(busaca) PELO ID FAZ UM CONDIÇÂO SE NAO ENCONTRA FICA E SE 
+ENCONTRA REDIRECIONA EXIBINDO CATEGARIA PELO EVENTO compact) - View ja feita
+
+ public function show($id)
+    {
+        if (!$category = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.categories.show', compact('category'));
+    }
+
+--------------- METODO DETROY ---BUSCA PELO ID , DETROY SE ENCONTRA E REDIRECIONA
+public function destroy($id)
+    {
+        if (!$category = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $category->delete();
+
+        return redirect()->route('categories.index');
+    }
+
+
+-----------------------------EDIT
+ public function edit($id)
+    {
+        if (!$category = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.categories.edit', compact('category'));
+    }
+
+---------------------------------METODO Upade 
+public function update(StoreUpdateCategory $request, $id)
+    {
+        if (!$category = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $category->update($request->all());
+
+        return redirect()->route('categories.index');
+    }
+
+----------METODO Search
+public function search(Request $request)
+    {
+        $filters = $request->only('filter');
+
+        $categories = $this->repository
+                            ->where(function($query) use ($request) {
+                                if ($request->filter) {
+                                    $query->orWhere('description', 'LIKE', "%{$request->filter}%");
+                                    $query->orWhere('name', $request->filter);
+                                }
+                            })
+                            ->latest()
+                            ->paginate();
+
+        return view('admin.pages.categories.index', compact('categories', 'filters'));
+    }
+
+
+------NOSSA CategoryController FICA ASSIM
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\StoreUpdateCategory;
+use App\Models\Category;
+use Illuminate\Http\Request;
+
+class CategoryController extends Controller
+{
+    private $repository;
+
+    public function __construct(Category $category)
+    {
+        $this->repository = $category;
+
+        //  $this->middleware(['can:categories']);
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $categories = $this->repository->latest()->paginate();
+
+        return view('admin.pages.categories.index', compact('categories'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    
+    public function create()
+    {
+        return view('admin.pages.categories.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \App\Http\Requests\StoreUpdateCategory  $request
+     * @return \Illuminate\Http\Response
+     */
+    
+    public function store(StoreUpdateCategory $request)
+    {
+        $this->repository->create($request->all());
+
+        return redirect()->route('categories.index');
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    
+    public function show($id)
+    {
+        if (!$category = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.categories.show', compact('category'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    
+    public function edit($id)
+    {
+        if (!$category = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.categories.edit', compact('category'));
+    }
+
+
+    /**
+     * Update register by id
+     *
+     * @param  \App\Http\Requests\StoreUpdateCategory  $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    
+    public function update(StoreUpdateCategory $request, $id)
+    {
+        if (!$category = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $category->update($request->all());
+
+        return redirect()->route('categories.index');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    
+    public function destroy($id)
+    {
+        if (!$category = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $category->delete();
+
+        return redirect()->route('categories.index');
+    }
+
+
+    /**
+     * Search results
+     *
+     * @param  Request $request
+     * @return \Illuminate\Http\Response
+     */
+    
+    public function search(Request $request)
+    {
+        $filters = $request->only('filter');
+
+        $categories = $this->repository
+                            ->where(function($query) use ($request) {
+                                if ($request->filter) {
+                                    $query->orWhere('description', 'LIKE', "%{$request->filter}%");
+                                    $query->orWhere('name', $request->filter);
+                                }
+                            })
+                            ->latest()
+                            ->paginate();
+
+        return view('admin.pages.categories.index', compact('categories', 'filters'));
+    }
+
+} 
+
+--------------------------------------------------------------OK PERFEITO (listando, editaando, deletanto, filtrando)
+
+19-----------------------------CRIAR PRODUTOS----------
+
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+PARA LIMPAR CACHE 
+
+# php artisan cache:clear 
+# php artisan config:clear 
+
+---------------------------------OBS: NAO FIZ
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+----VAMOS PRIMEIRAMENTE NO DASHBOARD E CRIAR NOSSO LINK
+
+ [
+            'text' => 'Categoria',
+            'url'  => 'admin/categories',
+            'icon' => 'fas fa-university', 
+        ],
+
+        [
+            'text' => 'Produto',
+            'url'  => 'admin/products',
+            'icon' => 'fas fa-file-signature', 
+        ],
+
+--------------------VAMOS CRIAR A MODEL (juntamente com a migration)
+# php artisan make:model Models\Product -m
+----------- NA MODEL LIBERAMOS OS CAMPOS E DECLARAMOS O RELACIONAMENTO COM A TABELA Cateroies --PRECISAMOS IR LA NA MODEL
+Categories E FAZER O MESMO RELACIONAMNETO
+<?php
+
+namespace App\Models;
+
+use App\Tenant\Traits\TenantTrait;
+use Illuminate\Database\Eloquent\Model;
+
+class Product extends Model
+{
+    //
+    use TenantTrait;
+
+    protected $fillable = ['title', 'flag', 'price', 'description', 'image'];
+
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class);
+    }
+
+
+    /**
+     * Cateroies not linked with this product
+     */
+    /*
+    public function categoriesAvailable($filter = null)
+    {
+        $categories = Category::whereNotIn('categories.id', function($query) {
+            $query->select('category_product.category_id');
+            $query->from('category_product');
+            $query->whereRaw("category_product.product_id={$this->id}");
+        })
+        ->where(function ($queryFilter) use ($filter) {
+            if ($filter)
+                $queryFilter->where('categories.name', 'LIKE', "%{$filter}%");
+        })
+        ->paginate();
+
+        return $categories;
+    }
+    */
+}
+
+---A MODEL Categories VAI FICAR ASSIM 
+
+<?php
+
+namespace App\Models;
+
+use App\Tenant\Observers\TenantObserver;
+use Illuminate\Database\Eloquent\Model;
+
+class Category extends Model
+{
+    //
+    use TenantTrait;
+
+    protected $fillable = ['name', 'url', 'description'];
+
+    protected static function boot(){
+            parent::boot();
+            static::observe(TenantObserver::class) ;   
+    }
+
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class);
+    }
+    
+}
+
+
+
+---------------------------MIGRATION (FAREMOS O RELACIONAMENTO AQUI MESMO) - RELACIOANAMNETO COM A TABELA TENANT_ID TAMBEM 
+è OBRIGATORIO 
+
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateProductsTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('products', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('tenant_id');
+        //    $table->uuid('uuid');
+            $table->string('title');
+            $table->string('flag');
+           $table->string('image');
+            $table->double('price', 10, 2);
+            $table->text('description');
+            $table->timestamps();
+
+         
+            $table->foreign('tenant_id')
+                        ->references('id')
+                        ->on('tenants')
+                        ->onDelete('cascade');
+               
+        });
+
+        Schema::create('category_product', function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->unsignedBigInteger('category_id');
+            $table->unsignedBigInteger('product_id');
+
+            $table->foreign('category_id')
+                        ->references('id')
+                        ->on('categories')
+                        ->onDelete('cascade');
+            $table->foreign('product_id')
+                        ->references('id')
+                        ->on('products')
+                        ->onDelete('cascade');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('category_product');
+        Schema::dropIfExists('products');
+    }
+}
+
+--------VAMOS AGORA RODAR A TABELA (ja que a migration esta criada)
+--OBS--NÃO ESQUECE DE SALVAR ANTES OS ARQUIVOS
+
+# php artisan migrate
+
+--------------------------------------------OK PERFEITO (CRIOU TABELA NA VERDADE DUAS TABELAS--
+A Product e a tabela PIVO (relacionamneto) Product_category)---esperando image
+
+
+
+---ATENÇÂO----ESQUECEMOS A IMAGEM --VAMOS FAZER A CORREÇÂO 
+(acrecentamos image no fillable la na MODEl e Tambem NA TABELA Product)
+ --- TENTEI APAGAR MANUALMENTE NO BD (nao consehui) VAMOS TER QUE RODAR OS COMANDO DE REFRESCH (uma pena)
+
+# composer dump-autoload
+# php artisan migrate:refresh
+# php artisan migrate:fresh
+# php artisan migrate:refresh
+
+-----------------REFEITA VAZIA , VAMOS POPULAR RODANDO seed
+
+# php artisan db:seed
+
+----------------------------------------OK PERFEITO (semeou)
+
+     
+------VAMOS CRIAR NOSSO ProductController--------(dentro de Controller\Admim)
+
+# php artisan make:controller Admin\ProductController
+
+private $repository;
+
+    public function __construct(Product $product)
+    {
+        $this->repository = $product;
+
+        $this->middleware(['can:products']);
+    }
+
+    /**
+     * Display a listing of the resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $products = $this->repository->latest()->paginate();
+
+        return view('admin.pages.products.index', compact('products'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return view('admin.pages.products.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \App\Http\Requests\StoreUpdateProduct  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(StoreUpdateProduct $request)
+    {
+        $data = $request->all();
+
+        $tenant = auth()->user()->tenant;
+
+        if ($request->hasFile('image') && $request->image->isValid()) {
+            $data['image'] = $request->image->store("tenants/{$tenant->uuid}/products");
+        }
+
+        $this->repository->create($data);
+
+        return redirect()->route('products.index');
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show($id)
+    {
+        if (!$product = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.products.show', compact('product'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function edit($id)
+    {
+        if (!$product = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        return view('admin.pages.products.edit', compact('product'));
+    }
+
+
+    /**
+     * Update register by id
+     *
+     * @param  \App\Http\Requests\StoreUpdateProduct  $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function update(StoreUpdateProduct $request, $id)
+    {
+        if (!$product = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        $data = $request->all();
+
+        $tenant = auth()->user()->tenant;
+
+        if ($request->hasFile('image') && $request->image->isValid()) {
+
+            if (Storage::exists($product->image)) {
+                Storage::delete($product->image);
+            }
+
+            $data['image'] = $request->image->store("tenants/{$tenant->uuid}/products");
+        }
+
+        $product->update($data);
+
+        return redirect()->route('products.index');
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy($id)
+    {
+        if (!$product = $this->repository->find($id)) {
+            return redirect()->back();
+        }
+
+        if (Storage::exists($product->image)) {
+            Storage::delete($product->image);
+        }
+
+        $product->delete();
+
+        return redirect()->route('products.index');
+    }
+
+
+    /**
+     * Search results
+     *
+     * @param  Request $request
+     * @return \Illuminate\Http\Response
+     */
+    public function search(Request $request)
+    {
+        $filters = $request->only('filter');
+
+        $products = $this->repository
+                            ->where(function($query) use ($request) {
+                                if ($request->filter) {
+                                    $query->orWhere('description', 'LIKE', "%{$request->filter}%");
+                                    $query->orWhere('title', $request->filter);
+                                }
+                            })
+                            ->latest()
+                            ->paginate();
+
+        return view('admin.pages.products.index', compact('products', 'filters'));
+    }
+}
+
+
+--------------------VAMOS EM SEGUIDA VALIDAR FAZENDO O request StoreUpdateProduct - REGRANDO QUE QUANDO ESTIVER CADASTRANDO
+PODE COLOCAR A IMAGEM E QUANDO ESTIVER EDITANDO NAO SERIA OBRIGATORIO
+
+# php artisan make:request StoreUpdateProduct
+
+/**
+     * Determine if the user is authorized to make this request.
+     *
+     * @return bool
+     */
+    public function authorize()
+    {
+        return true;
+    }
+
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        $id = $this->segment(3);
+
+        $rules = [
+            'title' => [
+                'required',
+                'min:3',
+                'max:255',
+                //"unique:products,title,{$id},id"
+                new UniqueTenant('products', $id),
+            ],
+            'description' => ['required', 'min:3', 'max:500'],
+            'image' => ['required', 'image'],
+            'price' => "required|regex:/^\d+(\.\d{1,2})?$/",
+        ];
+
+        if ($this->method() == 'PUT') {
+            $rules['image'] = ['nullable', 'image'];
+        }
+
+        return $rules;
+    }
+}
+
+-----------------------------------ESTAMOS ARMAZENANDO AS IMAGEM EM STORAGE\app\public-----(ENTAO
+VAMOS DEIXAR A CONFIGURAÇÔES DE config\filessysytem COMO public    (Nao é o que quero)
+EAVA ASSIM 
+    'default' => env('FILESYSTEM_DRIVER', 'local'),
+---VAI FICAR ASSIM 
+
+    'default' => env('FILESYSTEM_DRIVER', 'public'),    
+
+ ---E AGORA CRIAR NOSSAS views
+ -------INDEX
+@extends('adminlte::page')
+
+@section('title', 'Produtos')
+
+@section('content_header')
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ route('admin.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active"><a href="{{ route('products.index') }}" class="active">Produtos</a></li>
+    </ol>
+
+    <h1>Produtos <a href="{{ route('products.create') }}" class="btn btn-dark">ADD</a></h1>
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-header">
+            <form action="{{ route('products.search') }}" method="POST" class="form form-inline">
+                @csrf
+                <input type="text" name="filter" placeholder="Filtrar:" class="form-control" value="{{ $filters['filter'] ?? '' }}">
+                <button type="submit" class="btn btn-dark">Filtrar</button>
+            </form>
+        </div>
+        <div class="card-body">
+            <table class="table table-condensed">
+                <thead>
+                    <tr>
+                        <th>Imagem</th>
+                        <th>TITULO</th>
+                        
+                        <th width="150">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach ($products as $Product)
+                        <tr>
+                            <td>{{ $Product->image }}</td>
+                            <td>{{ $Product->title }}</td>
+                            <td style="width=10px;">
+                                <a href="{{ route('products.edit', $Product->id) }}" class="btn btn-info">Edit</a>
+                                <a href="{{ route('products.show', $Product->id) }}" class="btn btn-warning">VER</a>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer">
+            @if (isset($filters))
+                {!! $products->appends($filters)->links() !!}
+            @else
+                {!! $products->links() !!}
+            @endif
+        </div>
+    </div>
+@stop
+
+-------Show
+@extends('adminlte::page')
+
+@section('title', "Detalhes da Produto {$Product->name}")
+
+@section('content_header')
+    <h1>Detalhes da Produto <b>{{ $Product->name }}</b></h1>
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <ul>
+                <li>
+                    {{ $Product->image }}
+                </li>
+                <li>
+                    <strong>TITULO: </strong> {{ $Product->title }}
+                </li>
+                <li>
+                    <strong>FLAG: </strong> {{ $Product->flag }}
+                </li>
+                <li>
+                    <strong>Descrição: </strong> {{ $Product->description }}
+                </li>
+            </ul>
+
+            @include('admin.includes.alerts')
+
+            <form action="{{ route('categories.destroy', $Product->id) }}" method="POST">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> DELETAR O Produto {{ $Product->title }}</button>
+            </form>
+        </div>
+    </div>
+@endsection
+--------------------------EDIT
+@extends('adminlte::page')
+
+@section('title', "Editar o produto {$product->title}")
+
+@section('content_header')
+    <h1>Editar o produto {{ $product->title }}</h1>
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <form action="{{ route('products.update', $product->id) }}" class="form" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+
+                @include('admin.pages.products.partials.form')
+            </form>
+        </div>
+    </div>
+@endsection
+
+-----------------------------------CREATE@extends('adminlte::page')
+
+@section('title', 'Cadastrar Novo Produto')
+
+@section('content_header')
+    <h1>Cadastrar Novo Produto</h1>
+@stop
+
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <form action="{{ route('products.store') }}" class="form" method="POST" enctype="multipart/form-data">
+                @csrf
+
+                @include('admin.pages.products.partials.form')
+            </form>
+        </div>
+    </div>
+@endsection
+
+---------------------------------------------------FORM
+
+@include('admin.includes.alerts')
+
+<div class="form-group">
+    <label>* Título:</label>
+    <input type="text" name="title" class="form-control" placeholder="Título:" value="{{ $product->title ?? old('title') }}">
+</div>
+<div class="form-group">
+    <label>* Preço:</label>
+    <input type="text" name="price" class="form-control" placeholder="Preço:" value="{{ $product->price ?? old('price') }}">
+</div>
+<div class="form-group">
+    <label>* Imagem:</label>
+    <input type="file" name="image" class="form-control">
+</div>
+<div class="form-group">
+    <label>* Descrição:</label>
+    <textarea name="description" ols="30" rows="5" class="form-control">{{ $product->description ?? old('description') }}</textarea>
+</div>
+<div class="form-group">
+    <button type="submit" class="btn btn-dark">Enviar</button>
+</div>
+
+
+--------------------------------------CRIAR NOSSAS ROTAS 
+
+/**
+     * Routes Products
+     */
+    Route::any('products/search', 'ProductController@search')->name('products.search');
+    Route::resource('products', 'ProductController');
+
+--------------------------------------VAMOS CRIAR UM OBSERVER (criando logo  com TODOS OS METODOS)
+
+# php artisan make:observer ProductObserver --model=Models\Product  
+
+<?php
+
+namespace App\Observers;
+use Illuminate\Support\Str;
+use App\Models\Product;
+
+class ProductObserver
+{
+    /**
+     * Handle the product "created" event.
+     *
+     * @param  \App\Models\Product  $product
+     * @return void
+     */
+    public function creating(Product $product)
+    {
+        $product->flag = Str::kebab($product->title);
+        //   $category->uuid = Str::uuid();
+    }
+
+    /**
+     * Handle the product "updated" event.
+     *
+     * @param  \App\Models\Product  $product
+     * @return void
+     */
+    public function updating(Product $product)
+    {
+        $product->flag = Str::kebab($product->title);
+    }
+
+    //DELETAMOS OS DEMAIS METODOS
+    
+}
+--------------------VAMOS EM PROVIDER FAZER QUE O OBSERVER ESCUTE NOSSO MODEL (vamos em Providers\AppServiceProvider)
+public function boot()
+    {
+        Schema::defaultStringLength(191);
+       // Schema::defaultStringlength(191);
+       Plan::observe(PlanObserver::class);
+       // Tenant::observe(TenantObserver::class);
+       Category::observe(CategoryObserver::class);
+       Product::observe(ProductObserver::class);
+------------------------------------------------------------ AGORA SIM JA ESTA CADASTRANDO (acho que pelo Observer)
+A imagem icou em Storage\app\public\tenant\products
+
+------------------------------------------------------------------------------OK PERFEITO CADSTRAU
+
+AULA 3 10min
+
 
